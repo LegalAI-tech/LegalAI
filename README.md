@@ -26,7 +26,7 @@ Transform complex legal questions into clear, actionable insights with our AI-po
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/AnuGuin/LegalAI.git
 cd frontend
 ```
 
