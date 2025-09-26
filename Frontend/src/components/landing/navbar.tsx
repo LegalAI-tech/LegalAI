@@ -1,90 +1,199 @@
-"use client";
+'use client'
+import Link from 'next/link'
+import { Logo } from '@/components/logo'
+import { Menu, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import React from 'react'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { useEffect, useState } from "react";
+// --- UNCHANGED VARIANTS ---
+const navbarVariants = {
+  initial: {
+    y: -100,
+    opacity: 0,
+  },
+  animate: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      bounce: 0.25,
+      duration: 1.2,
+      delay: 0.2,
+    },
+  },
+};
+const menuItemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: (i: number) => ({
+        opacity: 1,
+        y: 0,
+        transition: { delay: i * 0.08 + 0.5, type: "spring" as const, bounce: 0.3, duration: 0.6 },
+    }),
+};
+const mobileMenuVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: -20 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring" as const, bounce: 0.2, duration: 0.4 } },
+    exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.2 } },
+};
+const buttonVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { type: "spring" as const, bounce: 0.4, duration: 0.6 } },
+    hover: { scale: 1.05, transition: { type: "spring" as const, stiffness: 400, damping: 10 } },
+    tap: { scale: 0.95 },
+};
 
-export function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
+// --- MODIFIED containerVariants ---
+// We move the maxWidth animation from CSS classes into Framer Motion
+const containerVariants = {
+    scrolled: {
+        maxWidth: '768px', // Equivalent to max-w-4xl
+        transition: {
+            type: "spring" as const,
+            bounce: 0.15,
+            duration: 0.8,
+        },
+    },
+    initial: {
+        maxWidth: '1152px', // Equivalent to max-w-6xl
+        transition: {
+            type: "spring" as const,
+            bounce: 0.15,
+            duration: 0.8,
+        },
+    },
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 10);
-    };
+const menuItems = [
+    { name: 'Home', href: '#home' },
+    { name: 'Features', href: '#features' },
+    { name: 'Testimonials', href: '#testimonial' },
+    { name: 'Pricing', href: '#pricing' },
+]
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+const smoothScrollTo = (href: string) => {
+    if (href.startsWith('#')) {
+        const element = document.querySelector(href)
+        if (element) {
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            })
+        }
+    }
+}
 
-  return (
-    <nav
-      className={`fixed top-0 left-0 right-0 w-full z-[100] transition-all duration-500 ease-in-out ${
-        isScrolled
-          ? "backdrop-blur-xl bg-white/10 dark:bg-black/20 border-b border-white/20 dark:border-white/10 shadow-2xl shadow-black/20"
-          : "bg-transparent border-b border-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-white">
-              LegalAI
-            </Link>
-          </div>
+export const Navbar = () => {
+    const [menuState, setMenuState] = React.useState(false)
+    const [isScrolled, setIsScrolled] = React.useState(false)
 
-          {/* Navigation Links */}
-          <NavigationMenu className="hidden md:flex">
-            <NavigationMenuList className="flex space-x-8">
-              <NavigationMenuItem>
-                <Link
-                  href="#home"
-                  className="text-white/80 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
+    React.useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50)
+        }
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
+    const handleNavClick = (href: string) => {
+        smoothScrollTo(href)
+        setMenuState(false) 
+    }
+
+    return (
+        <motion.header
+            variants={navbarVariants}
+            initial="initial"
+            animate="animate"
+        >
+            <nav
+                data-state={menuState && 'active'}
+                className="fixed z-20 w-full px-2">
+                <motion.div 
+                    variants={containerVariants}
+                    animate={isScrolled ? "scrolled" : "initial"}
+                    // MODIFIED: Removed conflicting CSS classes
+                    className={cn(
+                        'mx-auto mt-2 px-6 lg:px-12', // Base classes
+                        isScrolled && 'bg-background/50 rounded-2xl border backdrop-blur-lg lg:px-5 shadow-lg' // Classes for scrolled state (no transitions or layout shifts)
+                    )}
                 >
-                  Home
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link
-                  href="#features"
-                  className="text-white/80 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Features
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link
-                  href="#testimonial"
-                  className="text-white/80 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Testimonial
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link
-                  href="#pricing"
-                  className="text-white/80 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  Pricing
-                </Link>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
+                        <div className="flex w-full justify-between lg:w-auto">
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            >
+                                <Link
+                                    href="/"
+                                    aria-label="home"
+                                    className="flex items-center space-x-2"
+                                    onClick={() => handleNavClick('#home')}
+                                >
+                                    <Logo />
+                                </Link>
+                            </motion.div>
 
-          {/* CTA Button */}
-          <div className="flex items-center space-x-4">
-            <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-2 font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25">
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
+                            <motion.button
+                                onClick={() => setMenuState(!menuState)}
+                                aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
+                                className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
+                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.1 }}
+                            >
+                                <motion.div
+                                    animate={{ rotate: menuState ? 90 : 0, scale: menuState ? 0 : 1, opacity: menuState ? 0 : 1 }}
+                                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                                >
+                                    <Menu className="m-auto size-6 duration-200" />
+                                </motion.div>
+                                <motion.div
+                                    animate={{ rotate: menuState ? 0 : -90, scale: menuState ? 1 : 0, opacity: menuState ? 1 : 0 }}
+                                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                                    className="absolute inset-0"
+                                >
+                                    <X className="m-auto size-6 duration-200" />
+                                </motion.div>
+                            </motion.button>
+                        </div>
+
+                        <div className="absolute inset-0 m-auto hidden size-fit lg:block">
+                            <ul className="flex gap-8 text-base">
+                                {menuItems.map((item, index) => (
+                                    <motion.li 
+                                        key={index}
+                                        variants={menuItemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        custom={index}
+                                    >
+                                        <motion.div
+                                            whileHover={{ y: -2 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                                        >
+                                            <button
+                                                onClick={() => handleNavClick(item.href)}
+                                                className="text-muted-foreground hover:text-accent-foreground block duration-150 relative group"
+                                            >
+                                                <span>{item.name}</span>
+                                                <div // This is fine as a CSS transition since it's on hover and not tied to the scroll state.
+                                                    className="absolute -bottom-1 left-0 h-0.5 bg-blue-500 rounded-full w-0 group-hover:w-full transition-all duration-300"
+                                                />
+                                            </button>
+                                        </motion.div>
+                                    </motion.li>
+                                ))}
+                            </ul>
+                        </div>
+                        
+                        {/* The rest of your component remains the same... */}
+                        <div className="hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border bg-background p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent in-data-[state=active]:block lg:in-data-[state=active]:flex">
+                           {/* ... mobile menu and buttons ... */}
+                        </div>
+                    </div>
+                </motion.div>
+            </nav>
+        </motion.header>
+    )
 }

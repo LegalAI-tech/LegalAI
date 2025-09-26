@@ -4,6 +4,7 @@ import {
   Playfair_Display,
   Source_Code_Pro,
 } from "next/font/google";
+// @ts-expect-error: Allow importing global CSS without type declarations
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -34,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${playfairDisplay.variable} ${sourceCodePro.variable} antialiased`} >
+    <html lang="en" suppressHydrationWarning className="metallic-scrollbar">
+      <body className={`${montserrat.variable} ${playfairDisplay.variable} ${sourceCodePro.variable} antialiased metallic-scrollbar`} >
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

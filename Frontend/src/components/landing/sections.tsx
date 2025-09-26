@@ -1,7 +1,6 @@
 "use client";
 
 import CardFlip from "@/components/ui/card-flip";
-import { GradientBars } from "@/components/ui/gradient-bars";
 import { TestimonialCard } from "@/components/ui/testimonial-card";
 
 import { Brain, FileText, Shield } from "lucide-react";
@@ -97,7 +96,7 @@ export function Features() {
       y: 0,
       opacity: 1,
       scale: 1,
-      duration: 0.5,
+      duration: 0.75,
       stagger: 0.12,
       ease: "power3.out",
       force3D: true,
@@ -114,23 +113,31 @@ export function Features() {
     <section
       ref={sectionRef}
       id="features"
-      className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden will-change-transform"
+      className="min-h-screen w-full py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative px-4 sm:px-6 lg:px-8 overflow-hidden will-change-transform"
       style={{ transform: "translateZ(0)" }}
     >
-      {/* Enhanced Gradient Bars Background */}
-      <div className="absolute inset-0 opacity-40">
-        <GradientBars />
-      </div>
+      {/* Top Fade Grid Background */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: "20px 30px",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)",
+          maskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)",
+        }}
+      />
 
-      {/* Subtle blue gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20" />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <div ref={headerRef} className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent">
+      <div className="relative max-w-7xl mx-auto">
+        <div ref={headerRef} className="text-center mb-8">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-blue-300 to-indigo-400 bg-clip-text text-transparent mt-2 p-2">
             Powerful Features for Everyone
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
             Discover how LegalAI transforms your legal workflow with
             cutting-edge AI technology
           </p>
@@ -333,7 +340,7 @@ export function Testimonial() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={headerRef} className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent mt-8 p-2">
             Trusted by Legal Professionals
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">

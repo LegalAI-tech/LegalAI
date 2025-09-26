@@ -9,7 +9,6 @@ interface ChatMessageProps {
     id: string;
     content: string;
     role: "user" | "assistant";
-    timestamp: Date;
   };
   userAvatar?: string;
   userName?: string;
@@ -47,12 +46,6 @@ export function ChatMessage({
             {message.content}
           </p>
         </div>
-        <p className={cn("text-xs text-neutral-500", isUser && "text-right")}>
-          {message.timestamp.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
       </div>
 
       {isUser && (

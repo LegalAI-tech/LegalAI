@@ -16,7 +16,6 @@ interface ChatSidebarProps {
     id: string;
     title: string;
     lastMessage: string;
-    timestamp: Date;
   }>;
   activeConversationId?: string;
   onSelectConversation: (id: string) => void;
@@ -52,7 +51,7 @@ export default function ChatSidebar({
   return (
     <Sidebar open={open} setOpen={setOpen} className="bg-neutral-800">
       <SidebarBody className="justify-between gap-4 bg-neutral-900 p-3">
-        <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+        <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto metallic-scrollbar">
           {open ? <Logo open={open} setOpen={setOpen} /> : <LogoIcon open={open} setOpen={setOpen} />}
 
           {/* New Chat Button  */}

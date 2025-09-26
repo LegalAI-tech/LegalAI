@@ -56,7 +56,7 @@ export default function SidebarAIInput() {
                         }
                     }}
                 >
-                    <div className="overflow-y-auto max-h-[120px]">
+                    <div className="overflow-y-auto max-h-[120px] metallic-scrollbar">
                         <Textarea
                             value={value}
                             placeholder="Ask me anything..."

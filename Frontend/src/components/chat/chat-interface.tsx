@@ -9,7 +9,6 @@ interface Message {
   id: string
   content: string
   role: "user" | "assistant"
-  timestamp: Date
 }
 
 interface Conversation {
@@ -17,7 +16,6 @@ interface Conversation {
   title: string
   messages: Message[]
   lastMessage: string
-  timestamp: Date
 }
 
 interface ChatInterfaceProps {
@@ -92,7 +90,6 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       id: Date.now().toString(),
       content,
       role: "user",
-      timestamp: new Date(),
     }
 
     let currentConversation = activeConversation
@@ -102,8 +99,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         id: Date.now().toString(),
         title: generateConversationTitle(content),
         messages: [],
-        lastMessage: content,
-        timestamp: new Date(),
+        lastMessage: content
       }
       setConversations(prev => [newConversation, ...prev])
       setActiveConversationId(newConversation.id)
@@ -115,8 +111,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         ? { 
             ...conv, 
             messages: [...conv.messages, newMessage],
-            lastMessage: content,
-            timestamp: new Date()
+            lastMessage: content
           }
         : conv
     ))
@@ -132,7 +127,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
 
       let jsonResp: any = null
       try {
-        jsonResp = await resp.json()
+        jsonResp = await resp.json();
       } catch (e) {
 
         console.warn("Failed to parse /api/webhook response as JSON", e)
@@ -143,8 +138,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         content: finalAssistantText,
-        role: "assistant",
-        timestamp: new Date(),
+        role: "assistant"
       }
 
       setConversations(prev => prev.map(conv => 
@@ -152,8 +146,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           ? { 
               ...conv, 
               messages: [...conv.messages, aiResponse],
-              lastMessage: aiResponse.content,
-              timestamp: new Date()
+              lastMessage: aiResponse.content
             }
           : conv
       ))
@@ -164,16 +157,14 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
         content: simulateAIResponse(content),
-        role: "assistant",
-        timestamp: new Date(),
+        role: "assistant"
       }
       setConversations(prev => prev.map(conv => 
         conv.id === currentConversation!.id
           ? { 
               ...conv, 
               messages: [...conv.messages, fallbackResponse],
-              lastMessage: fallbackResponse.content,
-              timestamp: new Date()
+              lastMessage: fallbackResponse.content
             }
           : conv
       ))
@@ -191,7 +182,14 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex h-screen bg-neutral-900">
+    <div className="flex h-screen bg-[#020617] relative">
+      {/* Slate Blue Radial Glow Background */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `radial-gradient(circle 500px at 50% 300px, rgba(100,116,139,0.15), transparent)`,
+        }}
+      />
       <ChatSidebar
         user={user}
         conversations={conversations}
@@ -201,9 +199,9 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         onLogout={onLogout}
       />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative z-10">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto metallic-scrollbar">
           {activeConversation && activeConversation.messages.length > 0 ? (
             <div className="max-w-4xl mx-auto px-4 py-8">
               {activeConversation.messages.map((message) => (

@@ -71,7 +71,7 @@ export default function AI_Input_Chat({
                         }
                     }}
                 >
-                    <div className="overflow-y-auto max-h-[200px]">
+                    <div className="overflow-y-auto max-h-[200px] metallic-scrollbar">
                         <Textarea
                             id="ai-input-chat"
                             value={value}
