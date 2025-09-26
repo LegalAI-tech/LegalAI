@@ -1,4 +1,5 @@
 'use client'
+
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
 import { Menu, X } from 'lucide-react'
@@ -7,7 +8,6 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// --- UNCHANGED VARIANTS ---
 const navbarVariants = {
   initial: {
     y: -100,
@@ -23,46 +23,91 @@ const navbarVariants = {
       delay: 0.2,
     },
   },
-};
-const menuItemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: (i: number) => ({
-        opacity: 1,
-        y: 0,
-        transition: { delay: i * 0.08 + 0.5, type: "spring" as const, bounce: 0.3, duration: 0.6 },
-    }),
-};
-const mobileMenuVariants = {
-    hidden: { opacity: 0, scale: 0.95, y: -20 },
-    visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring" as const, bounce: 0.2, duration: 0.4 } },
-    exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.2 } },
-};
-const buttonVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { type: "spring" as const, bounce: 0.4, duration: 0.6 } },
-    hover: { scale: 1.05, transition: { type: "spring" as const, stiffness: 400, damping: 10 } },
-    tap: { scale: 0.95 },
-};
+}
 
-// --- MODIFIED containerVariants ---
-// We move the maxWidth animation from CSS classes into Framer Motion
+// This is the primary fix: maxWidth is now animated by Framer Motion
 const containerVariants = {
-    scrolled: {
-        maxWidth: '768px', // Equivalent to max-w-4xl
-        transition: {
-            type: "spring" as const,
-            bounce: 0.15,
-            duration: 0.8,
-        },
+  scrolled: {
+    maxWidth: '768px', // Equivalent to Tailwind's max-w-4xl
+    transition: {
+      type: "spring" as const,
+      bounce: 0.15,
+      duration: 0.8,
     },
-    initial: {
-        maxWidth: '1152px', // Equivalent to max-w-6xl
-        transition: {
-            type: "spring" as const,
-            bounce: 0.15,
-            duration: 0.8,
-        },
+  },
+  initial: {
+    maxWidth: '1152px', // Equivalent to Tailwind's max-w-6xl
+    transition: {
+      type: "spring" as const,
+      bounce: 0.15,
+      duration: 0.8,
     },
+  },
+}
+
+const menuItemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 15,
+  },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.08 + 0.5,
+      type: "spring" as const,
+      bounce: 0.3,
+      duration: 0.6,
+    },
+  }),
+}
+
+const mobileMenuVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.95,
+    y: -20,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      bounce: 0.2,
+      duration: 0.4,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    y: -10,
+    transition: {
+      duration: 0.2,
+    },
+  },
+}
+
+const buttonVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      bounce: 0.4,
+      duration: 0.6,
+    },
+  },
+  hover: { 
+    scale: 1.05,
+    transition: {
+      type: "spring" as const,
+      stiffness: 400,
+      damping: 10,
+    },
+  },
+  tap: { scale: 0.95 },
 }
 
 const menuItems = [
@@ -113,10 +158,10 @@ export const Navbar = () => {
                 <motion.div 
                     variants={containerVariants}
                     animate={isScrolled ? "scrolled" : "initial"}
-                    // MODIFIED: Removed conflicting CSS classes
+                    // CSS transitions and maxWidth classes are removed from here
                     className={cn(
-                        'mx-auto mt-2 px-6 lg:px-12', // Base classes
-                        isScrolled && 'bg-background/50 rounded-2xl border backdrop-blur-lg lg:px-5 shadow-lg' // Classes for scrolled state (no transitions or layout shifts)
+                        'mx-auto mt-2 px-6 lg:px-12', 
+                        isScrolled && 'bg-background/50 rounded-2xl border backdrop-blur-lg lg:px-5 shadow-lg'
                     )}
                 >
                     <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
@@ -143,13 +188,21 @@ export const Navbar = () => {
                                 whileHover={{ scale: 1.1 }}
                             >
                                 <motion.div
-                                    animate={{ rotate: menuState ? 90 : 0, scale: menuState ? 0 : 1, opacity: menuState ? 0 : 1 }}
+                                    animate={{
+                                        rotate: menuState ? 90 : 0,
+                                        scale: menuState ? 0 : 1,
+                                        opacity: menuState ? 0 : 1,
+                                    }}
                                     transition={{ duration: 0.2, ease: "easeInOut" }}
                                 >
                                     <Menu className="m-auto size-6 duration-200" />
                                 </motion.div>
                                 <motion.div
-                                    animate={{ rotate: menuState ? 0 : -90, scale: menuState ? 1 : 0, opacity: menuState ? 1 : 0 }}
+                                    animate={{
+                                        rotate: menuState ? 0 : -90,
+                                        scale: menuState ? 1 : 0,
+                                        opacity: menuState ? 1 : 0,
+                                    }}
                                     transition={{ duration: 0.2, ease: "easeInOut" }}
                                     className="absolute inset-0"
                                 >
@@ -177,7 +230,7 @@ export const Navbar = () => {
                                                 className="text-muted-foreground hover:text-accent-foreground block duration-150 relative group"
                                             >
                                                 <span>{item.name}</span>
-                                                <div // This is fine as a CSS transition since it's on hover and not tied to the scroll state.
+                                                <div
                                                     className="absolute -bottom-1 left-0 h-0.5 bg-blue-500 rounded-full w-0 group-hover:w-full transition-all duration-300"
                                                 />
                                             </button>
@@ -186,10 +239,94 @@ export const Navbar = () => {
                                 ))}
                             </ul>
                         </div>
-                        
-                        {/* The rest of your component remains the same... */}
-                        <div className="hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border bg-background p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent in-data-[state=active]:block lg:in-data-[state=active]:flex">
-                           {/* ... mobile menu and buttons ... */}
+
+                        <div className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
+                            <AnimatePresence>
+                                {menuState && (
+                                    <motion.div
+                                        variants={mobileMenuVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                        className="lg:hidden"
+                                    >
+                                        <ul className="space-y-6 text-lg">
+                                            {menuItems.map((item, index) => (
+                                                <motion.li 
+                                                    key={index}
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ 
+                                                        delay: index * 0.1 + 0.1, 
+                                                        duration: 0.4,
+                                                        ease: "easeOut"
+                                                    }}
+                                                >
+                                                    <button
+                                                        onClick={() => handleNavClick(item.href)}
+                                                        className="text-muted-foreground hover:text-accent-foreground block duration-150 w-full text-left"
+                                                    >
+                                                        <span>{item.name}</span>
+                                                    </button>
+                                                </motion.li>
+                                            ))}
+                                        </ul>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            
+                            <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
+                                <motion.div
+                                    variants={buttonVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                >
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        size="sm"
+                                        className={cn(isScrolled && 'lg:hidden')}>
+                                        <Link href="#">
+                                            <span>Login</span>
+                                        </Link>
+                                    </Button>
+                                </motion.div>
+                                <motion.div
+                                    variants={buttonVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                >
+                                    <Button
+                                        asChild
+                                        size="sm"
+                                        className={cn("bg-blue-600 hover:bg-blue-700 text-white border-blue-600", isScrolled && 'lg:hidden')}>
+                                        <Link href="#">
+                                            <span>Sign Up</span>
+                                        </Link>
+                                    </Button>
+                                </motion.div>
+                                <motion.div
+                                    variants={buttonVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    className={cn(isScrolled ? 'lg:block' : 'hidden')}
+                                >
+                                    <Button
+                                        asChild
+                                        size="sm"
+                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                                        <Link href="#">
+                                            <span>Get Started</span>
+                                        </Link>
+                                    </Button>
+                                </motion.div>
+                            </div>
                         </div>
                     </div>
                 </motion.div>
