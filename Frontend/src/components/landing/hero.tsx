@@ -13,12 +13,13 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const simplifiedRef = useRef<HTMLSpanElement>(null);
   const paragraphRef = useRef<HTMLParagraphElement>(null);
+  const sparkleRef = useRef<HTMLDivElement>(null);
 
   console.log("Hero component rendered with onGetStarted:", typeof onGetStarted);
 
   useEffect(() => {
     // Only run animations if elements exist
-    if (!titleRef.current || !buttonRef.current || !simplifiedRef.current || !paragraphRef.current)
+    if (!titleRef.current || !buttonRef.current || !simplifiedRef.current || !paragraphRef.current || !sparkleRef.current)
       return;
 
     const ctx = gsap.context(() => {
@@ -27,6 +28,7 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
         y: 50,
         opacity: 0,
       });
+      gsap.set(sparkleRef.current, { opacity: 0 });
 
       // Create animation timeline
       const tl = gsap.timeline({
@@ -41,6 +43,13 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
         stagger: 0.2,
         ease: "power3.out",
       });
+
+      // Animate sparkle effect to fade in
+      tl.to(sparkleRef.current, {
+        opacity: 1,
+        duration: 1.5,
+        ease: "power2.inOut",
+      }, "-=1.2"); // Starts 1.2s before the end of the previous animation
 
       // Shimmer effect for "Simplified" text
       gsap.to(simplifiedRef.current, {
@@ -76,9 +85,9 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
           `,
           backgroundSize: "32px 32px",
           WebkitMaskImage:
-            "radial-gradient(ellipse 70% 70% at 0% 0%, #000 50%, transparent 90%)",
+            "radial-gradient(ellipse 70% 70% at 0% 0%, #000 50%, transparent 80%)",
           maskImage:
-            "radial-gradient(ellipse 70% 70% at 0% 0%, #000 50%, transparent 90%)",
+            "radial-gradient(ellipse 70% 70% at 0% 0%, #000 50%, transparent 80%)",
         }}
       />
       
@@ -92,9 +101,9 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
           `,
           backgroundSize: "32px 32px",
           WebkitMaskImage:
-            "radial-gradient(ellipse 70% 70% at 100% 0%, #000 50%, transparent 90%)",
+            "radial-gradient(ellipse 70% 70% at 100% 0%, #000 50%, transparent 80%)",
           maskImage:
-            "radial-gradient(ellipse 70% 70% at 100% 0%, #000 50%, transparent 90%)",
+            "radial-gradient(ellipse 70% 70% at 100% 0%, #000 50%, transparent 80%)",
         }}
       />
       
@@ -136,7 +145,7 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
           </p>
 
           {/* Sparkles Element with Parabolic Gradient */}
-          <div className="relative flex justify-center mb-6">
+          <div ref={sparkleRef} className="relative flex justify-center mb-6">
             <div className="w-full h-40 relative">
               {/* Parabolic Gradients */}
               <div 

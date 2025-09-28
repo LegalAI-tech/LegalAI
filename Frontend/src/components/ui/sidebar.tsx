@@ -31,12 +31,12 @@ export function Sidebar({ children, open, setOpen, className }: SidebarProps) {
     <SidebarContext.Provider value={{ open, setOpen }}>
       <motion.div
         className={cn(
-          "relative flex h-full w-fit flex-col border-r bg-neutral-900",
-          open ? "border-neutral-700 shadow-xl shadow-black/20" : "border-neutral-800",
+          "relative flex h-full w-fit flex-col border-r bg-neutral-800",
+          open ? "border-neutral-700 shadow-xl shadow-black/40" : "border-neutral-700",
           className
         )}
         animate={{
-          width: open ? "280px" : "60px",
+          width: open ? "280px" : "65px",
         }}
         transition={{
           duration: 0.4,
@@ -52,18 +52,27 @@ export function Sidebar({ children, open, setOpen, className }: SidebarProps) {
 interface SidebarBodyProps {
   children: React.ReactNode;
   className?: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-export function SidebarBody({ children, className }: SidebarBodyProps) {
+export function SidebarBody({ children, className, open }: SidebarBodyProps) {
   return (
-    <div
+    <motion.div
       className={cn(
-        "flex h-full flex-col overflow-hidden bg-neutral-900",
+        "flex h-full flex-col overflow-hidden",
         className
       )}
+      animate={{
+        backgroundColor: open ? "rgb(23, 23, 23)" : "rgb(33, 33, 33)"
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.25, 0.1, 0.25, 1],
+      }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 

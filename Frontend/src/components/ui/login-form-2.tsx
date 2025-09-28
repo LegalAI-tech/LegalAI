@@ -23,20 +23,18 @@ export default function LoginForm2({ onAuthenticated }: LoginForm2Props) {
     }
   };
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] relative">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative">
       {/* Dark Dotted Grid Background */}
       <div
         className="absolute inset-0 z-0"
         style={{
-          background: "#0f172a",
-          backgroundImage: `
-            radial-gradient(circle, rgba(139,92,246,0.6) 1px, transparent 1px),
-            radial-gradient(circle, rgba(59,130,246,0.4) 1px, transparent 1px),
-            radial-gradient(circle, rgba(236,72,153,0.5) 1px, transparent 1px)
-          `,
-          backgroundSize: "20px 20px, 40px 40px, 60px 60px",
-          backgroundPosition: "0 0, 10px 10px, 30px 30px",
-        }}
+          background: "py-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900",
+          backgroundImage: 
+            `radial-gradient(circle, rgba(156,163,175,0.5) 1px, transparent 1px),
+            radial-gradient(circle, rgba(107,114,128,0.3) 1px, transparent 1px)`,
+          backgroundSize: "20px 20px, 40px 40px",
+          backgroundPosition: "0 0, 10px 10px",
+          }}
       />
       <div className="relative z-10 grid min-h-screen grid-cols-1 md:grid-cols-2">
         <motion.div

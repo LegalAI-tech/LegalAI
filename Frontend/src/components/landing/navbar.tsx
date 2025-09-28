@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Logo } from '@/components/logo'
+import { Logo } from '@/components/ui/logo'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
@@ -17,98 +17,100 @@ const navbarVariants = {
     y: 0,
     opacity: 1,
     transition: {
-      type: "spring" as const,
-      bounce: 0.25,
-      duration: 1.2,
-      delay: 0.2,
+      type: "tween" as const,
+      ease: "easeOut" as const,
+      duration: 0.6,
+      delay: 0.6,
     },
   },
-}
+};
 
-// This is the primary fix: maxWidth is now animated by Framer Motion
 const containerVariants = {
   scrolled: {
-    maxWidth: '768px', // Equivalent to Tailwind's max-w-4xl
+    maxWidth: "768px",
     transition: {
-      type: "spring" as const,
-      bounce: 0.15,
-      duration: 0.8,
+      type: "tween" as const,
+      ease: "easeInOut" as const,
+      duration: 0.5,
     },
   },
   initial: {
-    maxWidth: '1152px', // Equivalent to Tailwind's max-w-6xl
+    maxWidth: "1152px",
     transition: {
-      type: "spring" as const,
-      bounce: 0.15,
-      duration: 0.8,
+      type: "tween" as const,
+      ease: "easeInOut" as const,
+      duration: 0.5,
     },
   },
-}
+};
 
 const menuItemVariants = {
   hidden: {
     opacity: 0,
-    y: 15,
+    y: 12,
   },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.08 + 0.5,
-      type: "spring" as const,
-      bounce: 0.3,
-      duration: 0.6,
+      delay: i * 0.07 + 0.3,
+      type: "tween" as const,
+      ease: "easeOut" as const,
+      duration: 0.4,
     },
   }),
-}
+};
 
 const mobileMenuVariants = {
   hidden: {
     opacity: 0,
-    scale: 0.95,
-    y: -20,
+    scale: 0.97,
+    y: -12,
   },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      type: "spring" as const,
-      bounce: 0.2,
-      duration: 0.4,
+      type: "tween" as const,
+      ease: "easeOut" as const,
+      duration: 0.35,
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: -10,
+    scale: 0.97,
+    y: -8,
     transition: {
-      duration: 0.2,
+      type: "tween" as const,
+      ease: "easeIn" as const,
+      duration: 0.25,
     },
   },
-}
+};
 
 const buttonVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: {
-      type: "spring" as const,
-      bounce: 0.4,
-      duration: 0.6,
+      type: "tween" as const,
+      ease: "easeOut" as const,
+      duration: 0.4,
     },
   },
-  hover: { 
-    scale: 1.05,
+  hover: {
+    scale: 1.04,
     transition: {
       type: "spring" as const,
-      stiffness: 400,
-      damping: 10,
+      stiffness: 250,
+      damping: 20,
     },
   },
-  tap: { scale: 0.95 },
-}
+  tap: { scale: 0.96 },
+};
+
 
 const menuItems = [
     { name: 'Home', href: '#home' },
@@ -129,7 +131,7 @@ const smoothScrollTo = (href: string) => {
     }
 }
 
-export const Navbar = () => {
+export const Navbar = ({ animate = false }: { animate?: boolean }) => {
     const [menuState, setMenuState] = React.useState(false)
     const [isScrolled, setIsScrolled] = React.useState(false)
 
@@ -149,7 +151,7 @@ export const Navbar = () => {
     return (
         <motion.header
             variants={navbarVariants}
-            initial="initial"
+            initial={animate ? "initial" : false}
             animate="animate"
         >
             <nav
@@ -182,7 +184,7 @@ export const Navbar = () => {
 
                             <motion.button
                                 onClick={() => setMenuState(!menuState)}
-                                aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
+                                aria-label={menuState ? 'Close Menu' : 'Open Menu'}
                                 className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
                                 whileTap={{ scale: 0.9 }}
                                 whileHover={{ scale: 1.1 }}
@@ -240,7 +242,7 @@ export const Navbar = () => {
                             </ul>
                         </div>
 
-                        <div className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
+                        <div className="bg-background data-[state=active]:block lg:data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
                             <AnimatePresence>
                                 {menuState && (
                                     <motion.div
@@ -259,7 +261,7 @@ export const Navbar = () => {
                                                     transition={{ 
                                                         delay: index * 0.1 + 0.1, 
                                                         duration: 0.4,
-                                                        ease: "easeOut"
+                                                        ease: "easeOut" as const
                                                     }}
                                                 >
                                                     <button

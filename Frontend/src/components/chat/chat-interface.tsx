@@ -152,7 +152,6 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       ))
     } catch (err) {
       // On error, fallback to simulated response but keep UX stable
-      // eslint-disable-next-line no-console
       console.error("Failed to fetch assistant response from webhook", err)
       const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -182,12 +181,17 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex h-screen bg-[#020617] relative">
-      {/* Slate Blue Radial Glow Background */}
+    <div className="flex h-screen relative">
+      {/* Dark Gray Dotted Grid Background */}
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `radial-gradient(circle 500px at 50% 300px, rgba(100,116,139,0.15), transparent)`,
+          background: "rgb(33, 33, 33)",
+          backgroundImage: `
+            radial-gradient(circle, rgba(255, 255, 255, 0.0) 1.5px, transparent 1.5px)
+          `,
+          backgroundSize: "30px 30px",
+          backgroundPosition: "0 0",
         }}
       />
       <ChatSidebar

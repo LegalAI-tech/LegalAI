@@ -61,8 +61,8 @@ export default function AI_Input_Chat({
                     aria-label="Chat input container"
                     className={cn(
                         "relative flex flex-col rounded-3xl transition-all duration-200 w-full text-left cursor-text",
-                        "border border-neutral-700 bg-neutral-800 hover:bg-neutral-750",
-                        isFocused && "border-neutral-600 bg-neutral-750"
+                        "border border-neutral-700 bg-neutral-800 hover:bg-neutral-800",
+                        isFocused && "border-neutral-700 bg-neutral-800"
                     )}
                     onClick={handleContainerClick}
                     onKeyDown={(e) => {
@@ -77,7 +77,7 @@ export default function AI_Input_Chat({
                             value={value}
                             placeholder={placeholder}
                             disabled={disabled}
-                            className="w-full rounded-3xl rounded-b-none px-6 py-4 bg-transparent border-none text-white placeholder:text-neutral-400 resize-none focus-visible:ring-0 leading-[1.4] text-base"
+                            className="w-full rounded-3xl rounded-b-none px-6 py-4 bg-transparent border-none text-white placeholder:text-neutral-400 resize-none focus-visible:ring-0 focus:ring-0 focus:ring-offset-0 focus:outline-none leading-[1.4] text-base"
                             ref={textareaRef}
                             onFocus={handleFocus}
                             onBlur={handleBlur}

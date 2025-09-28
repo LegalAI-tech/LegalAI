@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import LoginForm2 from "@/components/ui/login-form-2"
 
 interface AuthPageProps {
@@ -9,7 +8,6 @@ interface AuthPageProps {
 
 export function AuthPage({ onAuthenticated }: AuthPageProps) {
   const handleLogin = (email: string, password: string) => {
-    // Simulate successful login
     onAuthenticated({ name: "User", email })
   }
 
