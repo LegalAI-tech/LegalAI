@@ -782,7 +782,7 @@ export function Pricing() {
               </li>
             </ul>
             <button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-              Contact Sales
+              Contact Us
             </button>
           </div>
         </div>

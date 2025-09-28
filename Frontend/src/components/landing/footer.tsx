@@ -1,6 +1,18 @@
 "use client"
 
+import { useState } from 'react'
+import Link from 'next/link'
+import TocDialog from '@/components/docs/terms/toc-dialog'
+import PrivacyDialog from '@/components/docs/terms/privacy-dialog'
+import CookiePolicyDialog from '@/components/docs/terms/cookie-dialog'
+import ContactUsModal from '@/components/team/contact-us'
+
 export function Footer() {
+  const [isTocOpen, setIsTocOpen] = useState(false)
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
+  const [isCookieOpen, setIsCookieOpen] = useState(false)
+  const [isContactOpen, setIsContactOpen] = useState(false)
+
   return (
     <footer className="bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto">
@@ -8,7 +20,7 @@ export function Footer() {
           <div className="col-span-2">
             <h3 className="text-2xl font-bold mb-4 text-white">LegalAI</h3>
             <p className="text-white/70 mb-4 max-w-md">
-              Transforming legal practice with AI-powered solutions. Simplify your legal queries and streamline your workflow.
+              Transforming legal issues with AI-powered solutions. Simplify your legal queries and streamline your workflow.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-white/70 hover:text-white transition-colors">
@@ -36,21 +48,54 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4 text-white">Company</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-white/70 hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="text-white/70 hover:text-white transition-colors">Contact</a></li>
+              <li>
+                <Link href="/about" className="text-white/70 hover:text-white transition-colors">
+                  About
+                </Link>
+              </li>
+              <li>
+                <a 
+                  href="#contact" 
+                  onClick={(e) => { e.preventDefault(); setIsContactOpen(true); }}
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  Contact
+                </a>
+              </li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-white/70 text-sm">
-            © 2025 LegalAI. Made by Team Codecrafters. All rights reserved.
+            © 2025 LegalAI. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Privacy Policy</a>
-            <a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Terms of Service</a>
-            <a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Cookie Policy</a>
+            <a 
+              href="#privacy" 
+              onClick={(e) => { e.preventDefault(); setIsPrivacyOpen(true); }}
+              className="text-white/70 hover:text-white text-sm transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a 
+              href="#terms" 
+              onClick={(e) => { e.preventDefault(); setIsTocOpen(true); }} 
+              className="text-white/70 hover:text-white text-sm transition-colors">
+              Terms of Service
+            </a>
+            <a 
+              href="#cookies" 
+              onClick={(e) => { e.preventDefault(); setIsCookieOpen(true); }}
+              className="text-white/70 hover:text-white text-sm transition-colors"
+            >
+              Cookie Policy
+            </a>
           </div>
+          <TocDialog open={isTocOpen} onOpenChange={setIsTocOpen} />
+          <PrivacyDialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
+          <CookiePolicyDialog open={isCookieOpen} onOpenChange={setIsCookieOpen} />
+          <ContactUsModal open={isContactOpen} onOpenChange={setIsContactOpen} />
         </div>
       </div>
     </footer>
