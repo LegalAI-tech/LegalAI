@@ -163,8 +163,8 @@ export default function ContactUsModal({ open, onOpenChange }: ContactUsModalPro
             className="relative hidden md:flex items-center justify-center pr-8 mb-8"
           >
             <article className="relative mx-auto h-[350px] max-w-[400px] overflow-hidden rounded-2xl border bg-gradient-to-b from-blue-600 to-blue-600/5 p-6 text-xl text-white md:h-[420px] md:p-8 md:text-2xl lg:text-3xl">
-              Simplify your legal queries
-              <div className="absolute -right-20 -bottom-20 z-10 flex max-w-[280px] items-center justify-center md:-right-28 md:-bottom-28 md:max-w-[550px]">
+              LegalAI <br/> Your legal queries <br/> Simplified
+              <div className="absolute -right-20 -bottom-20 z-10 mx-auto flex h-full w-full max-w-[300px] items-center justify-center transition-all duration-700 hover:scale-105 md:-right-28 md:-bottom-28 md:max-w-[550px]">
                 <Earth
                   scale={1.1}
                   baseColor={[0.1451, 0.3882, 0.9216]}

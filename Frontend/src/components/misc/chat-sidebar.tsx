@@ -7,8 +7,16 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, History, Settings, LogOut, User, Plus } from "lucide-react";
+import { User, Settings, LogOut, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChatSidebarProps {
   user: { name: string; email: string; avatar?: string };
@@ -33,26 +41,13 @@ export default function ChatSidebar({
 }: ChatSidebarProps) {
   const [open, setOpen] = useState(false);
 
-  const navigationLinks = [
-    {
-      label: "Settings",
-      href: "#",
-      icon: <Settings className="h-4 w-4" />,
-    },
-    {
-      label: "Logout",
-      href: "#",
-      icon: <LogOut className="h-4 w-4" />,
-      onClick: onLogout,
-    },
-  ];
 
   return (
     <Sidebar
       open={open}
       setOpen={setOpen}
       className={cn(
-        "transition-all duration-50 ease-linear",
+        "transition-all duration-30 ease-linear",
         open ? "w-64" : "w-16"
       )}
     >
@@ -60,33 +55,46 @@ export default function ChatSidebar({
         open={open}
         setOpen={setOpen}
         className={cn(
-          "justify-between gap-4 p-3 h-full flex flex-col transition-colors duration-300 ease-in-out",
-          open ? "bg-neutral-900" : "bg-neutral-800"
+          "justify-between gap-4 p-3 h-full flex flex-col transition-colors duration-30 ease-in-out",
+          open ? "bg-neutral-900" : "bg-neutral-600"
         )}
       >
         <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto metallic-scrollbar transition-all duration-300 ease-in-out">
-          {open ? (
-            <Logo open={open} setOpen={setOpen} />
-          ) : (
-            <LogoIcon open={open} setOpen={setOpen} />
-          )}
+          <SidebarLogo open={open} setOpen={setOpen} />
 
           {/* New Chat Button */}
           <div className="mt-4">
             <Button
               onClick={onNewConversation}
               className={cn(
-                "w-full transition-all duration-300 ease-in-out bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700",
-                open ? "justify-start gap-2" : "justify-center p-2"
+                "w-full transition-all duration-300 ease-in-out text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300 rounded-lg text-sm font-medium",
+                open ? "justify-start gap-2 px-3 py-2 text-left bg-neutral-800 border border-neutral-700" : "justify-center p-2 bg-transparent border-none"
               )}
             >
-              <Plus className="h-4 w-4 shrink-0" />
-              {open && <span>New Chat</span>}
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={cn(
+                  "shrink-0 transition-all duration-300",
+                  open ? "h-3 w-3" : "h-5 w-5" 
+                )}
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
+                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
+                <path d="M16 5l3 3" />
+              </svg>
+              {open && <span className="text-neutral-300 font-medium">New Chat</span>}
             </Button>
           </div>
 
           {/* Recent Chats Section */}
-          <div className="mt-6 flex flex-col gap-1 transition-all duration-300 ease-in-out">
+          <div className="mt-4 flex flex-col gap-1 transition-all duration-300 ease-in">
             {open ? (
               <>
                 <div className="px-2 py-1">
@@ -103,10 +111,10 @@ export default function ChatSidebar({
                         "flex items-center rounded-lg text-sm font-medium transition-all duration-300 ease-in-out text-left w-full gap-3 px-3 py-2",
                         activeConversationId === conversation.id
                           ? "bg-neutral-800 text-neutral-100"
-                          : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-700"
                       )}
                     >
-                      <History className="h-4 w-4 shrink-0" />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></svg>
                       <div className="flex-1 min-w-0">
                         <p className="truncate font-medium text-neutral-200">
                           {conversation.title}
@@ -126,73 +134,78 @@ export default function ChatSidebar({
             ) : (
               <div className="flex justify-center p-2">
                 <div className="flex items-center justify-center h-8 w-8 rounded-md text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800 transition-colors duration-300 ease-in-out">
-                  <History className="h-5 w-5" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></svg>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Navigation Links */}
-          <div className="mt-auto flex flex-col gap-2 transition-all duration-300 ease-in-out">
-            <div className="px-2 py-1">
-              {open && (
-                <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                  Account
-                </h3>
-              )}
-            </div>
-            {navigationLinks.map((link, idx) => (
-              <button
-                key={idx}
-                onClick={link.onClick}
-                className={cn(
-                  "flex items-center rounded-lg text-sm font-medium text-neutral-400 transition-all duration-300 ease-in-out hover:bg-neutral-800 hover:text-neutral-300 w-full",
-                  open ? "gap-3 px-3 py-2 text-left" : "justify-center p-2"
-                )}
-                title={open ? undefined : link.label}
-              >
-                <div className="shrink-0">{link.icon}</div>
-                {open && (
-                  <span className="text-neutral-300 font-medium">
-                    {link.label}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* User Profile */}
-        <div
-          className={cn(
-            "flex items-center rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800 transition-all duration-300 ease-in-out",
-            open ? "gap-3 px-3 py-2 text-left" : "justify-center p-2"
-          )}
-        >
-          <Avatar className="h-8 w-8 shrink-0 border border-neutral-700">
-            {user.avatar ? (
-              <AvatarImage src={user.avatar} alt={user.name} />
-            ) : (
-              <AvatarFallback className="bg-neutral-800 border border-neutral-700">
-                <User className="h-4 w-4 text-neutral-400" />
-              </AvatarFallback>
-            )}
-          </Avatar>
-          {open && (
-            <div className="flex-1 min-w-0">
-              <p className="truncate font-medium text-neutral-200">
-                {user.name}
-              </p>
-              <p className="truncate text-xs text-neutral-400">{user.email}</p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div
+              className={cn(
+                "flex items-center rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800 transition-all duration-300 ease-in-out cursor-pointer",
+                open ? "gap-3 px-3 py-2 text-left" : "justify-center p-2"
+              )}
+            >
+              <Avatar className="h-8 w-8 shrink-0 border border-neutral-700">
+                {user.avatar ? (
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                ) : (
+                  <AvatarFallback className="bg-neutral-800 border border-neutral-700">
+                    <User className="h-4 w-4 text-neutral-400" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              {open && (
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-medium text-neutral-200">
+                    {user.name}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            side={open ? "top" : "right"}
+            align={open ? "center" : "start"}
+            className="w-56 bg-zinc-800 border-neutral-600 shadow-md"
+            sideOffset={open ? 8 : 16}
+            alignOffset={open ? 0 : -20}
+          >
+            <div className="px-2 py-1.5 text-sm font-medium text-neutral-200">
+              {user.name}
+            </div>
+            <div className="px-2 pb-2 text-xs text-neutral-500">
+              {user.email}
+            </div>
+          
+            <DropdownMenuItem className="text-neutral-300 hover:bg-neutral-800 focus:bg-neutral-800 focus:text-neutral-200">
+              <UserCircle className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-neutral-300 hover:bg-neutral-800 focus:bg-neutral-800 focus:text-neutral-200">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="my-3 bg-zinc-600" />
+            <DropdownMenuItem 
+              onClick={onLogout}
+              className="text-red-400 hover:bg-red-900/20 focus:bg-red-900/20 focus:text-red-300"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarBody>
     </Sidebar>
   );
 }
 
-const Logo = ({
+const SidebarLogo = ({
   open,
   setOpen,
 }: {
@@ -200,40 +213,15 @@ const Logo = ({
   setOpen: (open: boolean) => void;
 }) => {
   return (
-    <button
-      type="button"
+    <Logo
+      collapsed={!open}
+      showText={open}
       onClick={() => setOpen(!open)}
-      aria-label="Toggle sidebar"
+      variant="sidebar"
       className={cn(
-        "relative z-20 flex items-center rounded-md text-sm font-medium text-neutral-100 hover:bg-neutral-800 transition-all duration-300 ease-in-out",
-        open ? "gap-3 px-2 py-2 justify-start" : "justify-center p-2"
+        "transition-all duration-200 ease-in-out w-full",
+        open ? "justify-start" : "justify-center"
       )}
-    >
-      <span className="grid place-items-center h-8 w-8 rounded-md text-neutral-300 hover:text-neutral-100 transition-colors shrink-0">
-        <Menu className="h-5 w-5" aria-hidden="true" />
-      </span>
-      {open && (
-        <span className="text-sm font-semibold text-neutral-100">Legal AI</span>
-      )}
-    </button>
-  );
-};
-
-const LogoIcon = ({
-  open,
-  setOpen,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) => {
-  return (
-    <button
-      type="button"
-      onClick={() => setOpen(!open)}
-      aria-label="Open sidebar"
-      className="relative z-20 grid place-items-center h-10 w-10 rounded-md text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800 transition-all duration-300 ease-in-out shrink-0"
-    >
-      <Menu className="h-5 w-5" aria-hidden="true" />
-    </button>
+    />
   );
 };

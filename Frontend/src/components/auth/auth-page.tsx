@@ -1,6 +1,6 @@
 "use client"
 
-import LoginForm2 from "@/components/ui/login-form-2"
+import LoginForm from "@/components/ui/login-form"
 
 interface AuthPageProps {
   onAuthenticated: (user: { name: string; email: string }) => void
@@ -11,5 +11,5 @@ export function AuthPage({ onAuthenticated }: AuthPageProps) {
     onAuthenticated({ name: "User", email })
   }
 
-  return <LoginForm2 onAuthenticated={onAuthenticated} />
+  return <LoginForm onAuthenticated={onAuthenticated} />
 }

@@ -51,9 +51,9 @@ export function Sidebar({ children, open, setOpen, className }: SidebarProps) {
 
 interface SidebarBodyProps {
   children: React.ReactNode;
-  className?: string;
   open: boolean;
   setOpen: (open: boolean) => void;
+  className?: string;
 }
 
 export function SidebarBody({ children, className, open }: SidebarBodyProps) {

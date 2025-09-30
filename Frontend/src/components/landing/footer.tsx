@@ -49,7 +49,7 @@ export function Footer() {
             <h4 className="font-semibold mb-4 text-white">Company</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-white/70 hover:text-white transition-colors">
+                <Link href="/about" target ="_blank"  className="text-white/70 hover:text-white transition-colors">
                   About
                 </Link>
               </li>

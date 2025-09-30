@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessage } from "./chat-message"
-import AI_Input_Chat from "@/components/kokonutui/ai-input-chat"
+import AI_Input from "../ui/ai-chat"
+
 
 interface Message {
   id: string
@@ -182,7 +183,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
 
   return (
     <div className="flex h-screen relative">
-      {/* Dark Gray Dotted Grid Background */}
+      {/* Dark Gray Background */}
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -244,11 +245,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         {/* Input Area - Always at bottom */}
         <div className="p-6">
           <div className="max-w-4xl mx-auto">
-            <AI_Input_Chat 
-              onSendMessage={handleSendMessage} 
-              disabled={isLoading}
-              placeholder="Ask Legal AI"
-            />
+            <AI_Input/>
           </div>
         </div>
       </div>

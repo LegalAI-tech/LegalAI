@@ -124,7 +124,7 @@ export function Features() {
             linear-gradient(to right, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px)
           `,
-          backgroundSize: "20px 30px",
+          backgroundSize: "30px 30px",
           WebkitMaskImage:
             "radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)",
           maskImage:
@@ -134,7 +134,7 @@ export function Features() {
 
       <div className="relative max-w-7xl mx-auto">
         <div ref={headerRef} className="text-center mb-8">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-blue-300 to-indigo-400 bg-clip-text text-transparent mt-2 p-2">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-blue-300 to-indigo-400 bg-clip-text text-transparent">
             Powerful Features for Everyone
           </h2>
           <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">

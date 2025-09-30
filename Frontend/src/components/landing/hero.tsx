@@ -66,12 +66,12 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
   }, []);
 
   return (
-    <section id="home" className="min-h-screen w-full bg-[#0f172a] relative" >
+    <section id="home" className="min-h-screen w-full bg-[#0f102a] relative" >
       {/* Blue Radial Glow Background */}
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `radial-gradient(circle 600px at 50% 50%, rgba(59,130,246,0.3), transparent)`,
+          backgroundImage: `radial-gradient(circle 900px at 60% 60%, rgba(59,130,246,0.4), transparent)`,
         }}
       />
       
@@ -83,7 +83,7 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
             linear-gradient(to right, #374151 1px, transparent 1px),
             linear-gradient(to bottom, #374151 1px, transparent 1px)
           `,
-          backgroundSize: "32px 32px",
+          backgroundSize: "30px 30px",
           WebkitMaskImage:
             "radial-gradient(ellipse 70% 70% at 0% 0%, #000 50%, transparent 80%)",
           maskImage:
@@ -111,10 +111,11 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
       <div
         className="absolute bottom-0 left-0 right-0 h-32 z-5"
         style={{
-          background: "linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8), rgb(15, 23, 42))"
+          background: "radial-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8), rgb(15, 23, 42))"
         }}
       />
-      
+
+     
 
       {/* Content */}
       <div className="relative z-20 flex items-center justify-center px-4 sm:px-6 lg:px-8 min-h-screen">
@@ -144,7 +145,6 @@ export function Hero({ onGetStarted }: HeroProps = {}) {
             legal insights.
           </p>
 
-          {/* Sparkles Element with Parabolic Gradient */}
           <div ref={sparkleRef} className="relative flex justify-center mb-6">
             <div className="w-full h-40 relative">
               {/* Parabolic Gradients */}
