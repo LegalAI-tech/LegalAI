@@ -51,7 +51,7 @@ export default function ChatSidebar({
           open ? "bg-neutral-900" : "bg-neutral-600"
         )}
       >
-        <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto metallic-scrollbar transition-all duration-300 ease-in-out">
+        <div className="flex flex-1 flex-col overflow-x-hidden transition-all duration-300 ease-in-out">
           <SidebarLogo open={open} setOpen={setOpen} />
 
           {/* New Chat Button */}
@@ -86,16 +86,17 @@ export default function ChatSidebar({
           </div>
 
           {/* Recent Chats Section */}
-          <div className="mt-4 flex flex-col gap-1 transition-all duration-300 ease-in">
+          <div className="mt-4 flex flex-col flex-1 min-h-0 gap-1 transition-all duration-300 ease-in">
             {open ? (
               <>
-                <div className="px-2 py-1">
+                <div className="px-2 py-1 flex-shrink-0">
                   <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                     Recent Chats
                   </h3>
                 </div>
-                {conversations && conversations.length > 0 ? (
-                  conversations.map((conversation) => (
+                <div className="flex-1 overflow-y-auto sidebar-scrollbar min-h-0">
+                  {conversations && conversations.length > 0 ? (
+                    conversations.map((conversation) => (
                     <button
                       key={conversation.id}
                       onClick={() => onSelectConversation(conversation.id)}
@@ -111,17 +112,15 @@ export default function ChatSidebar({
                         <p className="truncate font-medium text-neutral-200">
                           {conversation.title}
                         </p>
-                        <p className="truncate text-xs text-neutral-500">
-                          {conversation.lastMessage}
-                        </p>
                       </div>
                     </button>
                   ))
-                ) : (
-                  <div className="px-2 py-2 text-center text-xs text-neutral-500">
-                    No conversations yet
-                  </div>
-                )}
+                  ) : (
+                    <div className="px-2 py-2 text-center text-xs text-neutral-500">
+                      No conversations yet
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <div className="flex justify-center p-2">

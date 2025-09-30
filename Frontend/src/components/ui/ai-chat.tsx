@@ -9,9 +9,10 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 
 interface AI_InputProps {
     onSendMessage?: (message: string) => void | Promise<void>;
+    mode?: 'chat' | 'agentic';
 }
 
-export default function AI_Input({ onSendMessage }: AI_InputProps) {
+export default function AI_Input({ onSendMessage, mode = 'chat' }: AI_InputProps) {
     const [value, setValue] = useState("");
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
         minHeight: 52,
@@ -89,15 +90,18 @@ export default function AI_Input({ onSendMessage }: AI_InputProps) {
 
                     <div className="h-12 bg-black/5 dark:bg-white/5 rounded-b-xl">
                         <div className="absolute left-3 bottom-3 flex items-center gap-2">
-                            <label className="cursor-pointer rounded-lg p-2 bg-black/5 dark:bg-white/5">
-                                <input type="file" className="hidden" />
-                                <Paperclip className="w-4 h-4 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors" />
-                            </label>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowTools(!showTools);
-                                }}
+                            {mode === 'agentic' && (
+                                <label className="cursor-pointer rounded-lg p-2 bg-black/5 dark:bg-white/5">
+                                    <input type="file" className="hidden" />
+                                    <Paperclip className="w-4 h-4 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors" />
+                                </label>
+                            )}
+                            {mode === 'chat' && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowTools(!showTools);
+                                    }}
                                 className={cn(
                                     "rounded-full transition-all flex items-center gap-2 px-1.5 py-1 border h-8 cursor-pointer",
                                     showTools
@@ -164,7 +168,8 @@ export default function AI_Input({ onSendMessage }: AI_InputProps) {
                                         </motion.span>
                                     )}
                                 </AnimatePresence>
-                            </button>
+                                </button>
+                            )}
                         </div>
                         <div className="absolute right-3 bottom-3">
                             <button

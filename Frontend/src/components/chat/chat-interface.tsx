@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessage } from "./chat-message"
 import AI_Input from "../ui/ai-chat"
-import { ChatModeSelector } from "../ui/model-selector"
+import { ChatModeSelector } from "../misc/model-selector"
 import { TextShimmer } from "../ui/text-shimmer"
 
 
@@ -30,7 +30,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isNewConversationSelected, setIsNewConversationSelected] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<'chat' | 'agentic'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId)
 
@@ -38,9 +41,20 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  const scrollToTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  };
+
   useEffect(() => {
-    scrollToBottom()
-  }, [activeConversation?.messages])
+    if (isNewConversationSelected) {
+      scrollToTop();
+      setIsNewConversationSelected(false);
+    } else {
+      scrollToBottom();
+    }
+  }, [activeConversation?.messages, isNewConversationSelected]);
 
   const generateConversationTitle = (firstMessage: string): string => {
     return firstMessage.length > 50 
@@ -59,6 +73,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     ]
     return responses[Math.floor(Math.random() * responses.length)]
   }
+
+  const handleModeChange = (mode: string) => {
+    setSelectedMode(mode as 'chat' | 'agentic');
+  };
 
   const extractAssistantText = (data: any): string | null => {
     if (!data) return null
@@ -181,6 +199,43 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
 
   const handleSelectConversation = (id: string) => {
     setActiveConversationId(id)
+    setIsNewConversationSelected(true);
+  }
+
+  const handleShareConversation = () => {
+    if (!activeConversation) return
+    
+    // Create a shareable link or copy conversation to clipboard
+    const conversationText = activeConversation.messages
+      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+      .join('\n\n')
+    
+    navigator.clipboard.writeText(conversationText)
+      .then(() => {
+        // You could show a toast notification here
+        console.log('Conversation copied to clipboard')
+      })
+      .catch(err => {
+        console.error('Failed to copy conversation:', err)
+      })
+  }
+
+  const handleDeleteConversation = () => {
+    if (!activeConversation) return
+    
+    // Remove the conversation from the list
+    setConversations(prev => prev.filter(conv => conv.id !== activeConversation.id))
+    
+    // If we deleted the active conversation, reset to no active conversation
+    if (activeConversationId === activeConversation.id) {
+      setActiveConversationId(null)
+    }
+  }
+
+  const handleTempChatClick = () => {
+    // Handle temporary chat functionality
+    console.log('Temporary chat clicked')
+    // You can implement temporary chat logic here
   }
 
   return (
@@ -209,11 +264,17 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       <div className="flex-1 flex flex-col relative z-10">
         {/* ChatModeSelector */}
         <div className="sticky top-0 z-20 bg-[rgb(33,33,33)]">
-          <ChatModeSelector/>
+          <ChatModeSelector
+            variant={activeConversation ? 'chat-selected' : 'default'}
+            onModeChange={handleModeChange}
+            onTempChatClick={handleTempChatClick}
+            onShareClick={handleShareConversation}
+            onDeleteClick={handleDeleteConversation}
+          />
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto metallic-scrollbar relative">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto metallic-scrollbar relative">
           {activeConversation && activeConversation.messages.length > 0 ? (
             <>
               <div className="max-w-4xl mx-auto px-4 py-8">
@@ -239,19 +300,19 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
               </div>
             </>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex items-center justify-center p-6" style={{ top: 'calc(50% - 30px)' }}>
               <div className="text-center max-w-2xl w-full">
-                <div className="mb-8">
+                <div className="mb-4">
                   <h1 className="text-4xl font-semibold mb-4 text-blue-400">
-                    Hello, {user.name.split(' ')[0]}
+                    Hello {user.name.split(' ')[0]}
                   </h1>
-                  <TextShimmer className='font-medium text-sm' duration={5}>
+                  <TextShimmer className='font-medium text-sm' duration={4}>
                     How can I assist you with your legal questions today?
                   </TextShimmer>
                   
                 </div>
                 <div className="w-full">
-                  <AI_Input onSendMessage={handleSendMessage} />
+                  <AI_Input onSendMessage={handleSendMessage} mode={selectedMode} />
                 </div>
               </div>
             </div>
@@ -259,9 +320,9 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         </div>
 
         {activeConversation && activeConversation.messages.length > 0 && (
-          <div className="p-6">
+          <div className="pt-1 pb-4">
             <div className="max-w-4xl mx-auto">
-              <AI_Input onSendMessage={handleSendMessage} />
+              <AI_Input onSendMessage={handleSendMessage} mode={selectedMode} />
             </div>
           </div>
         )}
