@@ -6,17 +6,9 @@ import {
   SidebarBody,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { User, Settings, LogOut, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import ProfileDropdown from "@/components/misc/profile-dropdown";
 
 interface ChatSidebarProps {
   user: { name: string; email: string; avatar?: string };
@@ -67,7 +59,7 @@ export default function ChatSidebar({
             <Button
               onClick={onNewConversation}
               className={cn(
-                "w-full transition-all duration-300 ease-in-out text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300 rounded-lg text-sm font-medium",
+                "w-full transition-all duration-300 ease-in-out text-white hover:bg-neutral-700 rounded-lg text-sm font-medium",
                 open ? "justify-start gap-2 px-3 py-2 text-left bg-neutral-800 border border-neutral-700" : "justify-center p-2 bg-transparent border-none"
               )}
             >
@@ -133,7 +125,7 @@ export default function ChatSidebar({
               </>
             ) : (
               <div className="flex justify-center p-2">
-                <div className="flex items-center justify-center h-8 w-8 rounded-md text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800 transition-colors duration-300 ease-in-out">
+                <div className="flex items-center justify-center h-8 w-8 rounded-md text-white transition-colors duration-300 ease-in-out">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></svg>
                 </div>
               </div>
@@ -142,64 +134,28 @@ export default function ChatSidebar({
         </div>
 
         {/* User Profile */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div
-              className={cn(
-                "flex items-center rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800 transition-all duration-300 ease-in-out cursor-pointer",
-                open ? "gap-3 px-3 py-2 text-left" : "justify-center p-2"
-              )}
-            >
-              <Avatar className="h-8 w-8 shrink-0 border border-neutral-700">
-                {user.avatar ? (
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                ) : (
-                  <AvatarFallback className="bg-neutral-800 border border-neutral-700">
-                    <User className="h-4 w-4 text-neutral-400" />
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              {open && (
-                <div className="flex-1 min-w-0">
-                  <p className="truncate font-medium text-neutral-200">
-                    {user.name}
-                  </p>
-                </div>
-              )}
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
+        <div className={cn(
+          "transition-all duration-300 ease-linear",
+          !open && "flex justify-center w-full"
+        )}>
+          <ProfileDropdown
+            data={{
+              name: user.name,
+              email: user.email,
+              avatar: user.avatar || undefined,
+            }}
+            showUserDetails={open}
             side={open ? "top" : "right"}
             align={open ? "center" : "start"}
-            className="w-56 bg-zinc-800 border-neutral-600 shadow-md"
-            sideOffset={open ? 8 : 16}
-            alignOffset={open ? 0 : -20}
-          >
-            <div className="px-2 py-1.5 text-sm font-medium text-neutral-200">
-              {user.name}
-            </div>
-            <div className="px-2 pb-2 text-xs text-neutral-500">
-              {user.email}
-            </div>
-          
-            <DropdownMenuItem className="text-neutral-300 hover:bg-neutral-800 focus:bg-neutral-800 focus:text-neutral-200">
-              <UserCircle className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-neutral-300 hover:bg-neutral-800 focus:bg-neutral-800 focus:text-neutral-200">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-3 bg-zinc-600" />
-            <DropdownMenuItem 
-              onClick={onLogout}
-              className="text-red-400 hover:bg-red-900/20 focus:bg-red-900/20 focus:text-red-300"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            sideOffset={open ? 8 : 12}
+            alignOffset={open ? 4 : -60}
+            onSignOut={onLogout}
+            className={cn(
+              "transition-all duration-300 ease-in-out",
+              !open && "w-fit"
+            )}
+          />
+        </div>
       </SidebarBody>
     </Sidebar>
   );

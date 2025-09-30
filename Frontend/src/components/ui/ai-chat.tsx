@@ -7,7 +7,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 
-export default function AI_Input() {
+interface AI_InputProps {
+    onSendMessage?: (message: string) => void | Promise<void>;
+}
+
+export default function AI_Input({ onSendMessage }: AI_InputProps) {
     const [value, setValue] = useState("");
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
         minHeight: 52,
@@ -16,7 +20,12 @@ export default function AI_Input() {
     const [showTools, setShowTools] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        if (!value.trim()) return;
+        
+        if (onSendMessage) {
+            await onSendMessage(value.trim());
+        }
         setValue("");
         adjustHeight(true); 
     };
@@ -66,7 +75,9 @@ export default function AI_Input() {
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault();
-                                    handleSubmit();
+                                    if (value.trim()) {
+                                        handleSubmit();
+                                    }
                                 }
                             }}
                             onChange={(e) => {

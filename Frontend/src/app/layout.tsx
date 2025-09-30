@@ -24,7 +24,7 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "LegalAI - Your Legal Queries Simplified",
+  title: "LegalAI",
   description:
     "Transform complex legal questions into clear, actionable insights with our AI-powered legal assistant.",
 };

@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessage } from "./chat-message"
 import AI_Input from "../ui/ai-chat"
+import { ChatModeSelector } from "../ui/model-selector"
+import { TextShimmer } from "../ui/text-shimmer"
 
 
 interface Message {
@@ -205,49 +207,64 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       />
       
       <div className="flex-1 flex flex-col relative z-10">
+        {/* ChatModeSelector */}
+        <div className="sticky top-0 z-20 bg-[rgb(33,33,33)]">
+          <ChatModeSelector/>
+        </div>
+
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto metallic-scrollbar">
+        <div className="flex-1 overflow-y-auto metallic-scrollbar relative">
           {activeConversation && activeConversation.messages.length > 0 ? (
-            <div className="max-w-4xl mx-auto px-4 py-8">
-              {activeConversation.messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  userAvatar={user.avatar}
-                  userName={user.name}
-                />
-              ))}
-              {isLoading && (
-                <div className="flex gap-3 p-4">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 border border-blue-200/30 dark:border-blue-800/30 flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <>
+              <div className="max-w-4xl mx-auto px-4 py-8">
+                {activeConversation.messages.map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    userAvatar={user.avatar}
+                    userName={user.name}
+                  />
+                ))}
+                {isLoading && (
+                  <div className="flex gap-3 p-4">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 border border-blue-200/30 dark:border-blue-800/30 flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 rounded-2xl px-4 py-3 border border-blue-200/30 dark:border-blue-800/30 backdrop-blur-sm">
+                      <p className="text-sm text-neutral-300">AI is thinking...</p>
+                    </div>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 rounded-2xl px-4 py-3 border border-blue-200/30 dark:border-blue-800/30 backdrop-blur-sm">
-                    <p className="text-sm text-neutral-300">AI is thinking...</p>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center max-w-2xl mx-auto">
-                <div className="mb-12">
-                  <h1 className="text-4xl font-normal mb-12 text-blue-400">
+            <div className="absolute inset-0 flex items-center justify-center p-6">
+              <div className="text-center max-w-2xl w-full">
+                <div className="mb-8">
+                  <h1 className="text-4xl font-semibold mb-4 text-blue-400">
                     Hello, {user.name.split(' ')[0]}
                   </h1>
+                  <TextShimmer className='font-medium text-sm' duration={5}>
+                    How can I assist you with your legal questions today?
+                  </TextShimmer>
+                  
+                </div>
+                <div className="w-full">
+                  <AI_Input onSendMessage={handleSendMessage} />
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Input Area - Always at bottom */}
-        <div className="p-6">
-          <div className="max-w-4xl mx-auto">
-            <AI_Input/>
+        {activeConversation && activeConversation.messages.length > 0 && (
+          <div className="p-6">
+            <div className="max-w-4xl mx-auto">
+              <AI_Input onSendMessage={handleSendMessage} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
