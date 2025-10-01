@@ -3,8 +3,18 @@
 import * as React from 'react';
 import { MessageCircleDashedIcon} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
-// Custom NorthStar icon component
+
 const NorthStarIcon = ({ size = 16, ...props }: { size?: number; className?: string }) => (
   <svg
     width={size}
@@ -25,7 +35,6 @@ const NorthStarIcon = ({ size = 16, ...props }: { size?: number; className?: str
   </svg>
 );
 
-// Custom RobotFace icon component
 const RobotFaceIcon = ({ size = 16, ...props }: { size?: number; className?: string }) => (
   <svg
     width={size}
@@ -48,7 +57,6 @@ const RobotFaceIcon = ({ size = 16, ...props }: { size?: number; className?: str
   </svg>
 );
 
-// Custom Share icon component
 const ShareIcon = ({ size = 16, ...props }: { size?: number; className?: string }) => (
   <svg
     width={size}
@@ -70,7 +78,6 @@ const ShareIcon = ({ size = 16, ...props }: { size?: number; className?: string 
   </svg>
 );
 
-// Custom Trash icon component
 const TrashIcon = ({ size = 16, ...props }: { size?: number; className?: string }) => (
   <svg
     width={size}
@@ -91,16 +98,6 @@ const TrashIcon = ({ size = 16, ...props }: { size?: number; className?: string 
     <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
   </svg>
 );
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 export interface ChatMode {
   value: string;
@@ -172,7 +169,7 @@ export const ChatModeSelector = React.forwardRef<HTMLElement, ChatModeSelectorPr
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Left: Chat Mode Selector (controlled) */}
           <Select value={selected} onValueChange={handleChange} aria-label="Select chat mode">
-            <SelectTrigger className="[&>svg]:text-muted-foreground/80 [&>svg]:shrink-0 border-none shadow-none bg-transparent hover:bg-transparent focus:ring-0 focus:ring-offset-0">
+            <SelectTrigger className="px-3 rounded-2xl [&>svg]:text-muted-foreground/80 [&>svg]:shrink-0 border-none shadow-none bg-transparent hover:bg-transparent focus:ring-0 focus:ring-offset-0">
               <IconComponent size={16} aria-hidden="true" />
               <SelectValue asChild>
                 <span className="ml-2">{selectedLabel}</span>

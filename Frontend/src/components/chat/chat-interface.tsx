@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessage } from "./chat-message"
-import AI_Input from "../ui/ai-chat"
+import AI_Input from "../misc/ai-chat"
 import { ChatModeSelector } from "../misc/model-selector"
 import { TextShimmer } from "../ui/text-shimmer"
+import AITextLoading from "../misc/ai-text-loading"
 
 
 interface Message {
@@ -172,7 +173,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           : conv
       ))
     } catch (err) {
-      // On error, fallback to simulated response but keep UX stable
+
       console.error("Failed to fetch assistant response from webhook", err)
       const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -289,10 +290,21 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
                 {isLoading && (
                   <div className="flex gap-3 p-4">
                     <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 border border-blue-200/30 dark:border-blue-800/30 flex items-center justify-center">
-                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse" />
                     </div>
-                    <div className="bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 rounded-2xl px-4 py-3 border border-blue-200/30 dark:border-blue-800/30 backdrop-blur-sm">
-                      <p className="text-sm text-neutral-300">AI is thinking...</p>
+                    <div className="flex-1 flex justify-start items-center">
+                      <div className="w-auto">
+                        <AITextLoading 
+                          texts={[
+                            "Analyzing legal context...",
+                            "Processing your query...",
+                            "Researching relevant laws...",
+                            "Formulating response...",
+                          ]}
+                          className="!text-sm !font-mono !font-normal !text-neutral-300 !justify-start !text-left"
+                          interval={800}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -307,7 +319,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
                     Hello {user.name.split(' ')[0]}
                   </h1>
                   <TextShimmer className='font-medium text-sm' duration={4}>
-                    How can I assist you with your legal questions today?
+                    How can I assist you with your legal questions?
                   </TextShimmer>
                   
                 </div>
