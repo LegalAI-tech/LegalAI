@@ -1,16 +1,59 @@
 "use client";
 
-import { Paperclip, Send } from "lucide-react";
-import { useState } from "react";
+import { Paperclip, Send, X } from "lucide-react";
+import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface Tool {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+}
 
 interface AI_InputProps {
     onSendMessage?: (message: string) => void | Promise<void>;
     mode?: 'chat' | 'agentic';
 }
+
+const tools: Tool[] = [
+    {
+        id: 'doc-generate',
+        label: 'Doc Generate',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" />
+                <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" />
+                <path d="M9 12h6" />
+                <path d="M9 16h6" />
+            </svg>
+        )
+    },
+    {
+        id: 'translate',
+        label: 'Translate',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M9 6.371c0 4.418 -2.239 6.629 -5 6.629" />
+                <path d="M4 6.371h7" />
+                <path d="M5 9c0 2.144 2.252 3.908 6 4" />
+                <path d="M12 20l4 -9l4 9" />
+                <path d="M19.1 18h-6.2" />
+                <path d="M6.694 3l.793 .582" />
+            </svg>
+        )
+    }
+];
 
 export default function AI_Input({ onSendMessage, mode = 'chat' }: AI_InputProps) {
     const [value, setValue] = useState("");
@@ -20,6 +63,7 @@ export default function AI_Input({ onSendMessage, mode = 'chat' }: AI_InputProps
     });
     const [showTools, setShowTools] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
 
     const handleSubmit = async () => {
         if (!value.trim()) return;
@@ -96,79 +140,131 @@ export default function AI_Input({ onSendMessage, mode = 'chat' }: AI_InputProps
                                     <Paperclip className="w-4 h-4 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors" />
                                 </label>
                             )}
+                            
                             {mode === 'chat' && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowTools(!showTools);
-                                    }}
-                                className={cn(
-                                    "rounded-full transition-all flex items-center gap-2 px-1.5 py-1 border h-8 cursor-pointer",
-                                    showTools
-                                        ? "bg-sky-500/15 border-sky-400 text-sky-500"
-                                        : "bg-black/5 dark:bg-white/5 border-transparent text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white "
-                                )}
-                            >
-                                <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                    <motion.div
-                                        animate={{
-                                            rotate: showTools ? 180 : 0,
-                                            scale: showTools ? 1.1 : 1,
-                                        }}
-                                        whileHover={{
-                                            rotate: showTools ? 180 : 15,
-                                            scale: 1.1,
-                                            transition: {
-                                                type: "spring",
-                                                stiffness: 300,
-                                                damping: 10,
-                                            },
-                                        }}
-                                        transition={{
-                                            type: "spring",
-                                            stiffness: 260,
-                                            damping: 25,
-                                        }}
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className={cn(
-                                                "w-4 h-4",
-                                                showTools
-                                                    ? "text-sky-500"
-                                                    : "text-inherit"
-                                            )}
+                                <div className="flex items-center gap-2">
+                                    <DropdownMenu onOpenChange={setShowTools}>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className={cn(
+                                                    "rounded-full transition-all flex items-center gap-2 px-1.5 py-1 border h-8 cursor-pointer",
+                                                    selectedTool || showTools
+                                                        ? "bg-sky-500/15 border-sky-400 text-sky-500"
+                                                        : "bg-black/5 dark:bg-white/5 border-transparent text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white "
+                                                )}
+                                            >
+                                                <div className="w-4 h-4 flex items-center justify-center shrink-0">
+                                                    <motion.div
+                                                        animate={{
+                                                            rotate: showTools ? 180 : 0,
+                                                            scale: showTools || selectedTool ? 1.1 : 1,
+                                                        }}
+                                                        whileHover={{
+                                                            rotate: showTools ? 180 : 15,
+                                                            scale: 1.1,
+                                                            transition: {
+                                                                type: "spring",
+                                                                stiffness: 300,
+                                                                damping: 10,
+                                                            },
+                                                        }}
+                                                        transition={{
+                                                            type: "spring",
+                                                            stiffness: 260,
+                                                            damping: 25,
+                                                        }}
+                                                    >
+                                                        {selectedTool ? selectedTool.icon : (
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width="16"
+                                                                height="16"
+                                                                viewBox="0 0 24 24"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                className={cn(
+                                                                    "w-4 h-4",
+                                                                    showTools
+                                                                        ? "text-sky-500"
+                                                                        : "text-inherit"
+                                                                )}
+                                                            >
+                                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                                <path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" />
+                                                            </svg>
+                                                        )}
+                                                    </motion.div>
+                                                </div>
+                                                <AnimatePresence>
+                                                    {(showTools || selectedTool) && (
+                                                        <motion.span
+                                                            initial={{ width: 0, opacity: 0 }}
+                                                            animate={{
+                                                                width: "auto",
+                                                                opacity: 1,
+                                                            }}
+                                                            exit={{ width: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            className={cn(
+                                                                "text-sm overflow-hidden whitespace-nowrap shrink-0",
+                                                                selectedTool || showTools ? "text-sky-500" : "text-inherit"
+                                                            )}
+                                                        >
+                                                            {selectedTool ? selectedTool.label : "Tools"}
+                                                        </motion.span>
+                                                    )}
+                                                </AnimatePresence>
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            side="top"
+                                            align="start"
+                                            sideOffset={8}
+                                            className="w-48 p-2 backdrop-blur-sm border border-zinc-400/60 dark:border-zinc-600/20 rounded-2xl shadow-[4px_8px_12px_2px_rgba(0,0,0,0.2)]"
+                                            style={{ backgroundColor: 'rgb(53, 53, 53)' }}
                                         >
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                            <path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" />
-                                        </svg>
-                                    </motion.div>
-                                </div>
-                                <AnimatePresence>
-                                    {showTools && (
-                                        <motion.span
-                                            initial={{ width: 0, opacity: 0 }}
-                                            animate={{
-                                                width: "auto",
-                                                opacity: 1,
-                                            }}
-                                            exit={{ width: 0, opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="text-sm overflow-hidden whitespace-nowrap text-sky-500 shrink-0"
+                                            <div className="space-y-1">
+                                                {tools.map((tool) => (
+                                                    <DropdownMenuItem key={tool.id} asChild>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedTool(tool);
+                                                                setShowTools(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 p-3 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl transition-all duration-200 cursor-pointer group hover:shadow-sm border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-700/50"
+                                                        >
+                                                            <div className="flex items-center gap-2 flex-1">
+                                                                {tool.icon}
+                                                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight whitespace-nowrap group-hover:text-zinc-950 dark:group-hover:text-zinc-50 transition-colors">
+                                                                    {tool.label}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </div>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    
+                                    {selectedTool && (
+                                        <motion.button
+                                            type="button"
+                                            onClick={() => setSelectedTool(null)}
+                                            initial={{ scale: 0, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2, type: "spring", stiffness: 260, damping: 25 }}
+                                            className="w-6 h-6 rounded-2xl bg-zinc-200/80 dark:bg-zinc-700/80 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors flex items-center justify-center"
                                         >
-                                            Tools
-                                        </motion.span>
+                                            <X className="w-3 h-3 text-zinc-600 dark:text-zinc-400" />
+                                        </motion.button>
                                     )}
-                                </AnimatePresence>
-                                </button>
+                                </div>
                             )}
                         </div>
                         <div className="absolute right-3 bottom-3">
