@@ -109,6 +109,9 @@ export default function ProfileDropdown({
                                     <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight truncate">
                                         {data.name}
                                     </div>
+                                    <div className="text-sm font-light text-zinc-800 dark:text-zinc-100 tracking-tight leading-tight truncate">
+                                        {data.email}
+                                    </div>
                                 </div>
                             )}
                         </button>

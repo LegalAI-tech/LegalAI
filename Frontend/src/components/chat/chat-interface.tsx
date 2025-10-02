@@ -2,11 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
-import { ChatMessage } from "./chat-message"
-import AI_Input from "../misc/ai-chat"
+import { ChatMessagesArea } from "./chat-message"
 import { ChatModeSelector } from "../misc/model-selector"
-import { TextShimmer } from "../ui/text-shimmer"
-import AITextLoading from "../misc/ai-text-loading"
 
 
 interface Message {
@@ -33,29 +30,11 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isNewConversationSelected, setIsNewConversationSelected] = useState(false);
   const [selectedMode, setSelectedMode] = useState<'chat' | 'agentic'>('chat');
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
+  const [streamingContent, setStreamingContent] = useState<string>("")
+  const messagesAreaRef = useRef<{ scrollToBottom: () => void; scrollToTop: () => void }>(null);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  const scrollToTop = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
-  };
-
-  useEffect(() => {
-    if (isNewConversationSelected) {
-      scrollToTop();
-      setIsNewConversationSelected(false);
-    } else {
-      scrollToBottom();
-    }
-  }, [activeConversation?.messages, isNewConversationSelected]);
 
   const generateConversationTitle = (firstMessage: string): string => {
     return firstMessage.length > 50 
@@ -105,6 +84,42 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     }
   }
 
+  const streamText = (text: string, messageId: string, conversationId: string) => {
+    const words = text.split(' ')
+    let currentIndex = 0
+    
+    const streamInterval = setInterval(() => {
+      if (currentIndex >= words.length) {
+        clearInterval(streamInterval)
+        setStreamingMessageId(null)
+        setStreamingContent("")
+        return
+      }
+
+      // Render 5-8 words at a time for faster streaming
+      const wordsToAdd = Math.min(5 + Math.floor(Math.random() * 4), words.length - currentIndex)
+      const nextChunk = words.slice(0, currentIndex + wordsToAdd).join(' ')
+      setStreamingContent(nextChunk)
+      
+      // Update the actual message content in real-time
+      setConversations(prev => prev.map(conv => 
+        conv.id === conversationId
+          ? { 
+              ...conv, 
+              messages: conv.messages.map(msg =>
+                msg.id === messageId ? { ...msg, content: nextChunk } : msg
+              ),
+              lastMessage: nextChunk
+            }
+          : conv
+      ))
+      
+      currentIndex += wordsToAdd
+    }, 50)
+
+    return () => clearInterval(streamInterval)
+  }
+
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return
 
@@ -151,15 +166,18 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       try {
         jsonResp = await resp.json();
       } catch (e) {
-
         console.warn("Failed to parse /api/webhook response as JSON", e)
       }
       const assistantText = (jsonResp && jsonResp.text) ? String(jsonResp.text).trim() : ''
       const finalAssistantText = assistantText || "Failed to get result"
 
+      setIsLoading(false)
+      
+      // Create assistant message only when we have the response
+      const assistantMessageId = (Date.now() + 1).toString()
       const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: finalAssistantText,
+        id: assistantMessageId,
+        content: "",
         role: "assistant"
       }
 
@@ -168,29 +186,44 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           ? { 
               ...conv, 
               messages: [...conv.messages, aiResponse],
-              lastMessage: aiResponse.content
+              lastMessage: ""
             }
           : conv
       ))
-    } catch (err) {
 
+      setStreamingMessageId(assistantMessageId)
+      
+      // Start streaming effect
+      streamText(finalAssistantText, assistantMessageId, currentConversation.id)
+
+    } catch (err) {
       console.error("Failed to fetch assistant response from webhook", err)
-      const fallbackResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: simulateAIResponse(content),
+      const fallbackResponse = simulateAIResponse(content)
+      
+      setIsLoading(false)
+      
+      // Create assistant message for fallback response
+      const assistantMessageId = (Date.now() + 1).toString()
+      const aiResponse: Message = {
+        id: assistantMessageId,
+        content: "",
         role: "assistant"
       }
+
       setConversations(prev => prev.map(conv => 
         conv.id === currentConversation!.id
           ? { 
               ...conv, 
-              messages: [...conv.messages, fallbackResponse],
-              lastMessage: fallbackResponse.content
+              messages: [...conv.messages, aiResponse],
+              lastMessage: ""
             }
           : conv
       ))
-    } finally {
-      setIsLoading(false)
+
+      setStreamingMessageId(assistantMessageId)
+      
+      // Stream fallback response
+      streamText(fallbackResponse, assistantMessageId, currentConversation.id)
     }
   }
 
@@ -201,6 +234,8 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const handleSelectConversation = (id: string) => {
     setActiveConversationId(id)
     setIsNewConversationSelected(true);
+    // Reset the flag after a brief moment to allow the animation to complete
+    setTimeout(() => setIsNewConversationSelected(false), 100);
   }
 
   const handleShareConversation = () => {
@@ -246,9 +281,6 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         className="absolute inset-0 z-0"
         style={{
           background: "rgb(33, 33, 33)",
-          backgroundImage: `
-            radial-gradient(circle, rgba(255, 255, 255, 0.0) 1.5px, transparent 1.5px)
-          `,
           backgroundSize: "30px 30px",
           backgroundPosition: "0 0",
         }}
@@ -274,70 +306,17 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           />
         </div>
 
-        {/* Messages Area */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto metallic-scrollbar relative">
-          {activeConversation && activeConversation.messages.length > 0 ? (
-            <>
-              <div className="max-w-4xl mx-auto px-4 py-8">
-                {activeConversation.messages.map((message) => (
-                  <ChatMessage
-                    key={message.id}
-                    message={message}
-                    userAvatar={user.avatar}
-                    userName={user.name}
-                  />
-                ))}
-                {isLoading && (
-                  <div className="flex gap-3 p-4">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-50/20 via-transparent to-blue-100/20 dark:from-blue-950/20 dark:via-transparent dark:to-blue-900/20 border border-blue-200/30 dark:border-blue-800/30 flex items-center justify-center">
-                      <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse" />
-                    </div>
-                    <div className="flex-1 flex justify-start items-center">
-                      <div className="w-auto">
-                        <AITextLoading 
-                          texts={[
-                            "Analyzing legal context...",
-                            "Processing your query...",
-                            "Researching relevant laws...",
-                            "Formulating response...",
-                          ]}
-                          className="!text-sm !font-mono !font-normal !text-neutral-300 !justify-start !text-left"
-                          interval={800}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </>
-          ) : (
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex items-center justify-center p-6" style={{ top: 'calc(50% - 30px)' }}>
-              <div className="text-center max-w-2xl w-full">
-                <div className="mb-4">
-                  <h1 className="text-4xl font-semibold mb-4 text-blue-400">
-                    Hello {user.name.split(' ')[0]}
-                  </h1>
-                  <TextShimmer className='font-medium text-sm' duration={4}>
-                    How can I assist you with your legal questions?
-                  </TextShimmer>
-                  
-                </div>
-                <div className="w-full">
-                  <AI_Input onSendMessage={handleSendMessage} mode={selectedMode} />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {activeConversation && activeConversation.messages.length > 0 && (
-          <div className="pt-1 pb-4">
-            <div className="max-w-4xl mx-auto">
-              <AI_Input onSendMessage={handleSendMessage} mode={selectedMode} />
-            </div>
-          </div>
-        )}
+        <ChatMessagesArea
+          ref={messagesAreaRef}
+          user={user}
+          activeConversation={activeConversation}
+          isLoading={isLoading}
+          selectedMode={selectedMode}
+          streamingMessageId={streamingMessageId}
+          streamingContent={streamingContent}
+          onSendMessage={handleSendMessage}
+          isNewConversationSelected={isNewConversationSelected}
+        />
       </div>
     </div>
   )

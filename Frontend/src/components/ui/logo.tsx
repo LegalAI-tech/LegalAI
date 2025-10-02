@@ -154,7 +154,7 @@ export function Logo({
         className={cn(
           "relative z-20 flex items-center rounded-xl text-sm font-medium transition-all duration-300 ease-in-out",
           variant === "sidebar" 
-            ? "text-neutral-100 hover:bg-neutral-800 p-2" 
+            ? "text-neutral-100 hover:bg-neutral-700 p-2" 
             : "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         )}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
