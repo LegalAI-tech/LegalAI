@@ -35,6 +35,7 @@ export function Sidebar({ children, open, setOpen, className }: SidebarProps) {
           open ? "border-neutral-700 shadow-xl shadow-black/40" : "border-neutral-700",
           className
         )}
+        initial={false}
         animate={{
           width: open ? "280px" : "65px",
         }}

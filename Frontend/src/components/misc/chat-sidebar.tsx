@@ -38,20 +38,17 @@ export default function ChatSidebar({
     <Sidebar
       open={open}
       setOpen={setOpen}
-      className={cn(
-        "transition-all duration-30 ease-linear",
-        open ? "w-64" : "w-16"
-      )}
+      className="flex-shrink-0"
     >
       <SidebarBody
         open={open}
         setOpen={setOpen}
         className={cn(
-          "justify-between gap-4 p-3 h-full flex flex-col transition-colors duration-30 ease-in-out",
+          "justify-between gap-4 p-3 h-full flex flex-col transition-colors duration-500 ease-out",
           open ? "bg-neutral-900" : "bg-neutral-600"
         )}
       >
-        <div className="flex flex-1 flex-col overflow-x-hidden transition-all duration-300 ease-in-out">
+        <div className="flex flex-1 flex-col overflow-hidden transition-all duration-500 ease-out">
           <SidebarLogo open={open} setOpen={setOpen} />
 
           {/* New Chat Button */}
@@ -59,7 +56,7 @@ export default function ChatSidebar({
             <Button
               onClick={onNewConversation}
               className={cn(
-                "w-full transition-all duration-300 ease-in-out text-white hover:bg-neutral-700 rounded-lg text-sm font-medium",
+                "w-full transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] text-white hover:bg-neutral-700 rounded-lg text-sm font-medium flex-shrink-0",
                 open ? "justify-start gap-2 px-3 py-2 text-left bg-neutral-800 border border-neutral-700" : "justify-center p-2 bg-transparent border-none"
               )}
             >
@@ -72,7 +69,7 @@ export default function ChatSidebar({
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 className={cn(
-                  "shrink-0 transition-all duration-300",
+                  "shrink-0 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
                   open ? "h-3 w-3" : "h-5 w-5" 
                 )}
               >
@@ -86,22 +83,22 @@ export default function ChatSidebar({
           </div>
 
           {/* Recent Chats Section */}
-          <div className="mt-4 flex flex-col flex-1 min-h-0 gap-1 transition-all duration-300 ease-in">
+          <div className="mt-4 flex flex-col flex-1 min-h-0 gap-1 transition-all duration-500 ease-out">
             {open ? (
               <>
                 <div className="px-2 py-1 flex-shrink-0">
                   <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    Recent Chats
+                    History
                   </h3>
                 </div>
-                <div className="flex-1 overflow-y-auto sidebar-scrollbar min-h-0">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar min-h-0">
                   {conversations && conversations.length > 0 ? (
                     conversations.map((conversation) => (
                     <button
                       key={conversation.id}
                       onClick={() => onSelectConversation(conversation.id)}
                       className={cn(
-                        "flex items-center rounded-lg text-sm font-medium transition-all duration-300 ease-in-out text-left w-full gap-3 px-3 py-2",
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] text-left w-full gap-3 px-3 py-2 flex-shrink-0",
                         activeConversationId === conversation.id
                           ? "bg-neutral-800 text-neutral-100"
                           : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-700"
@@ -134,7 +131,7 @@ export default function ChatSidebar({
 
         {/* User Profile */}
         <div className={cn(
-          "transition-all duration-300 ease-linear",
+          "transition-all duration-500 ease-out flex-shrink-0",
           !open && "flex justify-center w-full"
         )}>
           <ProfileDropdown
@@ -144,13 +141,13 @@ export default function ChatSidebar({
               avatar: user.avatar || undefined,
             }}
             showUserDetails={open}
-            side={open ? "top" : "right"}
+            side="top"
             align={open ? "center" : "start"}
-            sideOffset={open ? 8 : 12}
-            alignOffset={open ? 4 : -60}
+            sideOffset={8}
+            alignOffset={open ? 0 : 20}
             onSignOut={onLogout}
             className={cn(
-              "transition-all duration-300 ease-in-out",
+              "transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0",
               !open && "w-fit"
             )}
           />
@@ -174,7 +171,7 @@ const SidebarLogo = ({
       onClick={() => setOpen(!open)}
       variant="sidebar"
       className={cn(
-        "transition-all duration-200 ease-in-out w-full",
+        "w-full flex-shrink-0",
         open ? "justify-start" : "justify-center"
       )}
     />

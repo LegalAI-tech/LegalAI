@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessagesArea } from "./chat-message"
-import { ChatModeSelector } from "../misc/model-selector"
-
+import { ChatModeSelector } from "../misc/mode-selector"
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
   id: string
@@ -33,6 +33,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [streamingContent, setStreamingContent] = useState<string>("")
   const messagesAreaRef = useRef<{ scrollToBottom: () => void; scrollToTop: () => void }>(null);
+  const { toast } = useToast()
 
   const activeConversation = conversations.find(c => c.id === activeConversationId)
 
@@ -241,18 +242,25 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const handleShareConversation = () => {
     if (!activeConversation) return
     
-    // Create a shareable link or copy conversation to clipboard
+    // Copy conversation to clipboard
     const conversationText = activeConversation.messages
       .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
       .join('\n\n')
     
     navigator.clipboard.writeText(conversationText)
       .then(() => {
-        // You could show a toast notification here
-        console.log('Conversation copied to clipboard')
+        toast({
+          title: "Copied to clipboard",
+          description: "The conversation has been copied to your clipboard.",
+        })
       })
       .catch(err => {
         console.error('Failed to copy conversation:', err)
+        toast({
+          title: "Failed to copy",
+          description: "Could not copy the conversation to clipboard.",
+          variant: "destructive",
+        })
       })
   }
 
@@ -275,7 +283,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex h-screen relative">
+    <div className="flex h-screen relative overflow-hidden chat-interface-container" style={{ maxWidth: '100vw' }}>
       {/* Dark Gray Background */}
       <div
         className="absolute inset-0 z-0"
@@ -294,7 +302,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         onLogout={onLogout}
       />
       
-      <div className="flex-1 flex flex-col relative z-10">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ maxWidth: 'calc(100vw - 65px)' }}>
         {/* ChatModeSelector */}
         <div className="sticky top-0 z-20 bg-[rgb(33,33,33)]">
           <ChatModeSelector
@@ -316,6 +324,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           streamingContent={streamingContent}
           onSendMessage={handleSendMessage}
           isNewConversationSelected={isNewConversationSelected}
+          onRegenerate={handleSendMessage}
         />
       </div>
     </div>

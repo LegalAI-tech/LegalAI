@@ -7,6 +7,7 @@ import {
 // @ts-expect-error: Allow importing global CSS without type declarations
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

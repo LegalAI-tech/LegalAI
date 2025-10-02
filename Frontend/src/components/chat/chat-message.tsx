@@ -1,9 +1,13 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef, useEffect } from "react";
+import { forwardRef, useImperativeHandle, useRef, useEffect, useState } from "react";
 import { TextShimmer } from "../ui/text-shimmer";
 import AITextLoading from "../misc/ai-text-loading";
 import AI_Input from "../misc/ai-chat";
+import { Response as MarkdownResponse } from "../misc/response";
+import { Actions, Action } from "../misc/actions";
+import { Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -27,6 +31,7 @@ interface ChatMessagesAreaProps {
   streamingContent: string;
   onSendMessage: (content: string) => void;
   isNewConversationSelected: boolean;
+  onRegenerate?: (messageId: string) => void;
 }
 
 interface ChatMessagesAreaRef {
@@ -35,12 +40,66 @@ interface ChatMessagesAreaRef {
 }
 
 // Individual Chat Message Component
-function ChatMessage({ message, userAvatar, userName }: {
+function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, messages }: {
   message: Message;
   userAvatar?: string;
   userName?: string;
+  isStreaming?: boolean;
+  streamingContent?: string;
+  onRegenerate?: (messageId: string) => void;
+  messages?: Message[];
 }) {
   const isUser = message.role === "user";
+  const displayContent = isStreaming ? streamingContent : message.content;
+  const [isHovered, setIsHovered] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(displayContent || '');
+    toast({
+      variant: "default",
+      title: "Copied to clipboard!",
+      description: "Message content has been copied.",
+    });
+  };
+
+  const handleLike = () => {
+    toast({
+      variant: "success",
+      title: (
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M7 11v8a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-7a1 1 0 0 1 1 -1h3a4 4 0 0 0 4 -4v-1a2 2 0 0 1 4 0v5h3a2 2 0 0 1 2 2l-1 5a2 3 0 0 1 -2 2h-7a3 3 0 0 1 -3 -3" />
+          </svg>
+          <span>Liked</span>
+        </div>
+      ) as any,
+      description: "Thanks for your feedback!",
+    });
+  };
+
+  const handleDislike = () => {
+    toast({
+      variant: "destructive",
+      title: (
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M7 13v-8a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v7a1 1 0 0 0 1 1h3a4 4 0 0 1 4 4v1a2 2 0 0 0 4 0v-5h3a2 2 0 0 0 2 -2l-1 -5a2 3 0 0 0 -2 -2h-7a3 3 0 0 0 -3 3" />
+          </svg>
+          <span>Disliked</span>
+        </div>
+      ) as any,
+      description: "We'll work on improving our responses.",
+    });
+  };
+
+  const handleRegenerate = () => {
+    if (onRegenerate) {
+      onRegenerate(message.id);
+    }
+  };
 
   return (
     <div key={message.id} className="w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -54,12 +113,71 @@ function ChatMessage({ message, userAvatar, userName }: {
           </div>
         </div>
       ) : (
-        // Assistant message - full width, no avatar
-        <div className="w-full">
-          <div className="text-neutral-100 rounded-2xl p-4">
-            <p className="whitespace-pre-wrap leading-relaxed text-sm">
-              {message.content}
-            </p>
+        // Assistant message - full width with Response component for markdown
+        <div className="w-full relative group">
+          <div 
+            className="text-neutral-100 rounded-2xl p-4 relative"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="text-sm leading-relaxed">
+              <MarkdownResponse 
+                className="prose prose-invert prose-sm max-w-none
+                  prose-headings:text-neutral-100 prose-headings:font-semibold
+                  prose-p:text-neutral-200 prose-p:leading-relaxed
+                  prose-strong:text-neutral-100 prose-strong:font-semibold
+                  prose-code:text-blue-300 prose-code:bg-neutral-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                  prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700
+                  prose-blockquote:border-l-blue-500 prose-blockquote:text-neutral-300
+                  prose-ul:text-neutral-200 prose-ol:text-neutral-200
+                  prose-li:text-neutral-200
+                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline"
+              >
+                {displayContent || ''}
+              </MarkdownResponse>
+              {isStreaming && (
+                <div className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1" />
+              )}
+            </div>
+            
+            {/* Actions */}
+            <div className={`
+              absolute bottom-2 right-2 transition-all duration-300 ease-out transform
+              ${isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
+            `}>
+              <div className="bg-neutral-800/90 backdrop-blur-sm border border-neutral-700/50 rounded-lg p-1 shadow-lg">
+                <Actions>
+                  <Action
+                    tooltip="Copy message"
+                    onClick={handleCopy}
+                    className="hover:bg-neutral-700/50 text-neutral-400 hover:text-neutral-200"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Action>
+                  <Action
+                    tooltip="Like this response"
+                    onClick={handleLike}
+                    className="hover:bg-neutral-700/50 text-neutral-400 hover:text-green-400"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                  </Action>
+                  <Action
+                    tooltip="Dislike this response"
+                    onClick={handleDislike}
+                    className="hover:bg-neutral-700/50 text-neutral-400 hover:text-red-400"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                  </Action>
+                  <Action
+                    tooltip="Regenerate response"
+                    onClick={handleRegenerate}
+                    className="hover:bg-neutral-700/50 text-neutral-400 hover:text-blue-400"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </Action>
+                </Actions>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -86,6 +204,128 @@ function LoadingMessage() {
             className="!text-sm !font-mono !font-normal !text-neutral-300 !justify-start !text-left"
             interval={800}
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+{/* Streaming Message Component */}
+function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent: string; onRegenerate?: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(streamingContent || '');
+    toast({
+      variant: "default",
+      title: "Copied to clipboard!",
+      description: "Message content has been copied.",
+    });
+  };
+
+  const handleLike = () => {
+    toast({
+      variant: "success",
+      title: (
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M7 11v8a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-7a1 1 0 0 1 1 -1h3a4 4 0 0 0 4 -4v-1a2 2 0 0 1 4 0v5h3a2 2 0 0 1 2 2l-1 5a2 3 0 0 1 -2 2h-7a3 3 0 0 1 -3 -3" />
+          </svg>
+          <span>Liked</span>
+        </div>
+      ) as any,
+      description: "Thanks for your feedback!",
+    });
+  };
+
+  const handleDislike = () => {
+    toast({
+      variant: "destructive",
+      title: (
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M7 13v-8a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v7a1 1 0 0 0 1 1h3a4 4 0 0 1 4 4v1a2 2 0 0 0 4 0v-5h3a2 2 0 0 0 2 -2l-1 -5a2 3 0 0 0 -2 -2h-7a3 3 0 0 0 -3 3" />
+          </svg>
+          <span>Disliked</span>
+        </div>
+      ) as any,
+      description: "We'll work on improving our responses.",
+    });
+  };
+
+  const handleRegenerate = () => {
+    if (onRegenerate) {
+      onRegenerate();
+    }
+  };
+
+  return (
+    <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="w-full relative group">
+        <div 
+          className="text-neutral-100 rounded-2xl p-4 relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className="text-sm leading-relaxed">
+            <MarkdownResponse 
+              className="prose prose-invert prose-sm max-w-none
+                prose-headings:text-neutral-100 prose-headings:font-semibold
+                prose-p:text-neutral-200 prose-p:leading-relaxed
+                prose-strong:text-neutral-100 prose-strong:font-semibold
+                prose-code:text-blue-300 prose-code:bg-neutral-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700
+                prose-blockquote:border-l-blue-500 prose-blockquote:text-neutral-300
+                prose-ul:text-neutral-200 prose-ol:text-neutral-200
+                prose-li:text-neutral-200
+                prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline"
+            >
+              {streamingContent}
+            </MarkdownResponse>
+            <div className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1" />
+          </div>
+          
+          {/* Actions */}
+          <div className={`
+            absolute bottom-2 right-2 transition-all duration-300 ease-out transform
+            ${isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
+          `}>
+            <div className="bg-neutral-800/90 backdrop-blur-sm border-2xl border-neutral-700/50 rounded-lg p-1 shadow-lg">
+              <Actions>
+                <Action
+                  tooltip="Copy message"
+                  onClick={handleCopy}
+                  className="hover:bg-neutral-700/50 text-neutral-400 hover:text-neutral-200"
+                >
+                  <Copy className="w-4 h-4" />
+                </Action>
+                <Action
+                  tooltip="Like this response"
+                  onClick={handleLike}
+                  className="hover:bg-neutral-700/50 text-neutral-400 hover:text-green-400"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                </Action>
+                <Action
+                  tooltip="Dislike this response"
+                  onClick={handleDislike}
+                  className="hover:bg-neutral-700/50 text-neutral-400 hover:text-red-400"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                </Action>
+                <Action
+                  tooltip="Regenerate response"
+                  onClick={handleRegenerate}
+                  className="hover:bg-neutral-700/50 text-neutral-400 hover:text-blue-400"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Action>
+              </Actions>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -125,12 +365,44 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     user,
     activeConversation, 
     isLoading, 
-    selectedMode, 
+    selectedMode,
+    streamingMessageId,
+    streamingContent, 
     onSendMessage,
-    isNewConversationSelected
+    isNewConversationSelected,
+    onRegenerate
   }, ref) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const handleRegenerateMessage = (messageId: string) => {
+      if (!activeConversation) return;
+      
+      // Find the index of the assistant message to regenerate
+      const messageIndex = activeConversation.messages.findIndex(m => m.id === messageId);
+      if (messageIndex === -1) return;
+      
+      // Find the previous user message
+      for (let i = messageIndex - 1; i >= 0; i--) {
+        if (activeConversation.messages[i].role === 'user') {
+          // Resend the user message to regenerate the response
+          onSendMessage(activeConversation.messages[i].content);
+          break;
+        }
+      }
+    };
+
+    const handleRegenerateStreaming = () => {
+      if (!activeConversation || !activeConversation.messages.length) return;
+      
+      // Find the last user message
+      for (let i = activeConversation.messages.length - 1; i >= 0; i--) {
+        if (activeConversation.messages[i].role === 'user') {
+          onSendMessage(activeConversation.messages[i].content);
+          break;
+        }
+      }
+    };
 
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -174,9 +446,19 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
                   message={message}
                   userAvatar={user.avatar}
                   userName={user.name}
+                  isStreaming={streamingMessageId === message.id}
+                  streamingContent={streamingMessageId === message.id ? streamingContent : undefined}
+                  onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : undefined}
+                  messages={activeConversation.messages}
                 />
               ))}
-              {isLoading && <LoadingMessage />}
+              {streamingMessageId && !activeConversation.messages.find(m => m.id === streamingMessageId) && (
+                <StreamingMessage 
+                  streamingContent={streamingContent}
+                  onRegenerate={handleRegenerateStreaming}
+                />
+              )}
+              {isLoading && !streamingMessageId && <LoadingMessage />}
               <div ref={messagesEndRef} />
             </div>
           ) : (
@@ -191,7 +473,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
         {/* Input Area - Only show when there's an active conversation */}
         {hasMessages && (
           <div className="pt-1 pb-4">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <AI_Input onSendMessage={onSendMessage} mode={selectedMode} />
             </div>
           </div>
