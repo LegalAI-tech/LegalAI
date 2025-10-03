@@ -184,10 +184,10 @@ export default function ProfileDropdown({
                             <button
                                 type="button"
                                 onClick={onSignOut}
-                                className="w-full flex items-center gap-3 p-3 duration-200 hover:bg-red-500/10 rounded-xl cursor-pointer border border-transparent hover:border-red-500/20 hover:shadow-sm transition-all group"
+                                className="w-full flex items-center gap-3 p-3 duration-200 rounded-xl cursor-pointer border border-transparent transition-all group"
                             >
-                                <LogOut className="w-4 h-4 text-zinc-900 dark:text-zinc-100 group-hover:text-red-500/80" />
-                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-red-500/80">
+                                <LogOut className="w-4 h-4 text-zinc-900 dark:text-zinc-100 group-hover:text-red-600/80" />
+                                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-red-600/80">
                                     Sign Out
                                 </span>
                             </button>
