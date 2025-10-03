@@ -21,13 +21,11 @@ export function usePageTransition() {
       setTimeout(() => {
         startTransition(() => {
           router.push(path);
-          
-          // Hide loader after transition completes + small buffer
           setTimeout(() => {
             setIsLoading(false);
-          }, 400);
+          }, 200);
         });
-      }, 100);
+      }, 50);
     },
     [router]
   );

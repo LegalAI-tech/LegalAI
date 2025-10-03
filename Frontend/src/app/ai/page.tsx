@@ -29,11 +29,8 @@ export default function AIPage() {
         navigate("/auth");
       }
     } else {
-      // Redirect if not authenticated
       navigate("/auth");
     }
-    
-    // Add a small delay to ensure smooth transition
     setTimeout(() => {
       setIsCheckingAuth(false);
     }, 300);
@@ -68,7 +65,7 @@ export default function AIPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3 }}
     >
       <ChatInterface user={user} onLogout={handleLogout} />
     </motion.div>
