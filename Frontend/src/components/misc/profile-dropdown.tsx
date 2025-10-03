@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Settings, CreditCard, FileText, LogOut, User } from "lucide-react";
+import { Settings, CreditCard, FileText, LogOut, User, Palette } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -64,6 +64,11 @@ export default function ProfileDropdown({
             label: "Settings",
             href: "#",
             icon: <Settings className="w-4 h-4" />,
+        },
+        {
+            label: "Theme",
+            href: "#",
+            icon: <Palette className="w-4 h-4" />,
         },
         {
             label: "Subscription",
