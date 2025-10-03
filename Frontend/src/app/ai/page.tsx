@@ -37,7 +37,7 @@ export default function AIPage() {
   }, [navigate]);
 
   const handleLogout = () => {
-    navigate("/home", () => {
+    navigate("/", () => {
       localStorage.removeItem("user");
       setUser(null);
     });

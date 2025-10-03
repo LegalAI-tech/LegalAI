@@ -10,7 +10,7 @@ export default function LandingRedirect() {
   useEffect(() => {
     const handleNavigation = async () => {
       try {
-        await router.replace("/home");
+        await router.replace("/");
       } catch (error) {
         console.error("Navigation error:", error);
       }
