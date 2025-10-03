@@ -1,10 +1,9 @@
 "use client";
 
 import { AuthPage } from "@/components/auth/auth-page";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BounceLoader from "@/components/ui/bounce-loader";
+import { usePageTransition } from "@/hooks/use-page-transition";
 
 interface User {
   name: string;
@@ -13,25 +12,19 @@ interface User {
 }
 
 export default function AuthenticationPage() {
-  const router = useRouter();
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { navigate, isNavigating } = usePageTransition();
 
   const handleAuthenticated = (userData: User) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      // Store user data (you can use a more sophisticated auth system here)
+    navigate("/ai", () => {
       localStorage.setItem("user", JSON.stringify(userData));
-      // Redirect to AI page
-      router.push("/ai");
-      setIsTransitioning(false);
-    }, 1000);
+    });
   };
 
   return (
     <>
-      {/* Bounce Loader during transitions */}
-      <AnimatePresence>
-        {isTransitioning && (
+      {/* Bounce Loader - stays visible until navigation completes */}
+      <AnimatePresence mode="wait">
+        {isNavigating && (
           <motion.div
             key="loader"
             className="fixed inset-0 flex items-center justify-center bg-background z-50"
@@ -45,10 +38,16 @@ export default function AuthenticationPage() {
         )}
       </AnimatePresence>
 
-      {/* Auth form */}
-      {!isTransitioning && (
+      {/* Auth form with fade out during navigation */}
+      <motion.div
+        animate={{ 
+          opacity: isNavigating ? 0 : 1,
+          scale: isNavigating ? 0.95 : 1 
+        }}
+        transition={{ duration: 0.3 }}
+      >
         <AuthPage onAuthenticated={handleAuthenticated} />
-      )}
+      </motion.div>
     </>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { ChatInterface } from "@/components/chat/chat-interface";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BounceLoader from "@/components/ui/bounce-loader";
+import { usePageTransition } from "@/hooks/use-page-transition";
+import { useEffect, useState } from "react";
 
 interface User {
   name: string;
@@ -13,57 +13,64 @@ interface User {
 }
 
 export default function AIPage() {
-  const router = useRouter();
+  const { navigate, isNavigating } = usePageTransition();
   const [user, setUser] = useState<User | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated (you can implement proper authentication check here)
+    // Check authentication
     const storedUser = localStorage.getItem("user");
+    
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+        navigate("/auth");
+      }
     } else {
-      // Redirect to auth if not authenticated
-      router.push("/auth");
+      // Redirect if not authenticated
+      navigate("/auth");
     }
-  }, [router]);
+    
+    // Add a small delay to ensure smooth transition
+    setTimeout(() => {
+      setIsCheckingAuth(false);
+    }, 300);
+  }, [navigate]);
 
   const handleLogout = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
+    navigate("/home", () => {
       localStorage.removeItem("user");
       setUser(null);
-      router.push("/home");
-      setIsTransitioning(false);
-    }, 800);
+    });
   };
 
-  if (!user && !isTransitioning) {
-    return <div>Loading...</div>;
+  // Show loader while checking auth or navigating
+  if (isCheckingAuth || isNavigating || !user) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="loader"
+          className="fixed inset-0 flex items-center justify-center bg-background z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <BounceLoader />
+        </motion.div>
+      </AnimatePresence>
+    );
   }
 
   return (
-    <>
-      {/* Bounce Loader during transitions */}
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            key="loader"
-            className="fixed inset-0 flex items-center justify-center bg-background z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <BounceLoader />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Main AI interface */}
-      {!isTransitioning && user && (
-        <ChatInterface user={user} onLogout={handleLogout} />
-      )}
-    </>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <ChatInterface user={user} onLogout={handleLogout} />
+    </motion.div>
   );
 }

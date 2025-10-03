@@ -1,23 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BounceLoader from "@/components/ui/bounce-loader";
 
 export default function Home() {
   const router = useRouter();
-  const [isNavigating, setIsNavigating] = useState(true);
 
   useEffect(() => {
     const handleNavigation = async () => {
       try {
         await router.prefetch("/home");
         await new Promise(resolve => setTimeout(resolve, 50));
-        await router.push("/home");
-        
+        await router.replace("/home");
       } catch (error) {
         console.error("Navigation error:", error);
-        setIsNavigating(false);
       }
     };
 

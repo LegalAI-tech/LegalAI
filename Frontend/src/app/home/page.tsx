@@ -1,31 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/landing/navbar";
 import { Hero } from "@/components/landing/hero";
 import { Features, Testimonial, Pricing, CallToAction } from "@/components/landing/sections";
 import { Footer } from "@/components/landing/footer";
 import BounceLoader from "@/components/ui/bounce-loader";
+import { usePageTransition } from "@/hooks/use-page-transition";
 
 export default function LandingPage() {
-  const router = useRouter();
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { navigate, isNavigating } = usePageTransition();
 
   const handleGetStarted = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      router.push("/auth");
-      setIsTransitioning(false);
-    }, 1000);
+    navigate("/auth");
   };
 
   return (
     <>
       {/* Bounce Loader during transitions */}
-      <AnimatePresence>
-        {isTransitioning && (
+      <AnimatePresence mode="wait">
+        {isNavigating && (
           <motion.div
             key="loader"
             className="fixed inset-0 flex items-center justify-center bg-background z-50"
@@ -40,29 +34,34 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Main landing content */}
-      {!isTransitioning && (
-        <div className="min-h-screen bg-background scroll-smooth">
-          <Navbar animate={true} />
-          <main className="scroll-container">
-            <section id="home">
-              <Hero onGetStarted={handleGetStarted} />
-            </section>
-            <section id="features">
-              <Features />
-            </section>
-            <section id="testimonial">
-              <Testimonial />
-            </section>
-            <section id="pricing">
-              <Pricing />
-            </section>
-            <section id="cta">
-              <CallToAction />
-            </section>
-          </main>
-          <Footer />
-        </div>
-      )}
+      <motion.div
+        animate={{ 
+          opacity: isNavigating ? 0 : 1,
+          scale: isNavigating ? 0.98 : 1 
+        }}
+        transition={{ duration: 0.3 }}
+        className="min-h-screen bg-background scroll-smooth"
+      >
+        <Navbar animate={true} />
+        <main className="scroll-container">
+          <section id="home">
+            <Hero onGetStarted={handleGetStarted} />
+          </section>
+          <section id="features">
+            <Features />
+          </section>
+          <section id="testimonial">
+            <Testimonial />
+          </section>
+          <section id="pricing">
+            <Pricing />
+          </section>
+          <section id="cta">
+            <CallToAction />
+          </section>
+        </main>
+        <Footer />
+      </motion.div>
     </>
   );
 }
