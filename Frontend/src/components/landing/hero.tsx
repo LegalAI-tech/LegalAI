@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { Button } from "@/components/ui/button";
-import { SparklesCore } from "../ui/sparkles";
 interface HeroProps {
   onGetStarted?: () => void
 }

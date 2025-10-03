@@ -116,8 +116,10 @@ const menuItems = [
     { name: 'Home', href: '#home' },
     { name: 'Features', href: '#features' },
     { name: 'Testimonials', href: '#testimonial' },
-    { name: 'Pricing', href: '#pricing' },
+    { name: 'Pricing', href: '#pricing' }
 ]
+
+
 
 const smoothScrollTo = (href: string) => {
     if (href.startsWith('#')) {
@@ -173,7 +175,7 @@ export const Navbar = ({ animate = false }: { animate?: boolean }) => {
                                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
                             >
                                 <Link
-                                    href="/"
+                                    href="#home"
                                     aria-label="home"
                                     className="flex items-center space-x-2"
                                     onClick={() => handleNavClick('#home')}
@@ -290,7 +292,7 @@ export const Navbar = ({ animate = false }: { animate?: boolean }) => {
                                         variant="outline"
                                         size="sm"
                                         className={cn(isScrolled && 'lg:hidden')}>
-                                        <Link href="#">
+                                        <Link href="/auth">
                                             <span>Login</span>
                                         </Link>
                                     </Button>
@@ -306,7 +308,7 @@ export const Navbar = ({ animate = false }: { animate?: boolean }) => {
                                         asChild
                                         size="sm"
                                         className={cn("bg-blue-600 hover:bg-blue-700 text-white border-blue-600", isScrolled && 'lg:hidden')}>
-                                        <Link href="#">
+                                        <Link href="/auth">
                                             <span>Sign Up</span>
                                         </Link>
                                     </Button>
@@ -323,7 +325,7 @@ export const Navbar = ({ animate = false }: { animate?: boolean }) => {
                                         asChild
                                         size="sm"
                                         className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-                                        <Link href="#">
+                                        <Link href="/auth">
                                             <span>Get Started</span>
                                         </Link>
                                     </Button>

@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BounceLoader from "@/components/ui/bounce-loader";
 
-export default function Home() {
+export default function LandingRedirect() {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(true);
 
   useEffect(() => {
     const handleNavigation = async () => {
       try {
-        await router.prefetch("/home");
-        await new Promise(resolve => setTimeout(resolve, 50));
-        await router.push("/home");
+        setIsNavigating(true);
         
+        await router.replace("/home");
+    
+        setTimeout(() => {
+          setIsNavigating(false);
+        }, 100);
       } catch (error) {
         console.error("Navigation error:", error);
         setIsNavigating(false);
@@ -24,9 +27,13 @@ export default function Home() {
     handleNavigation();
   }, [router]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <BounceLoader />
-    </div>
-  );
+  if (isNavigating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <BounceLoader />
+      </div>
+    );
+  }
+
+  return null;
 }
