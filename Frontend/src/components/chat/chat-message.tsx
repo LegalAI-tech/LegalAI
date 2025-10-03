@@ -8,6 +8,7 @@ import { Response as MarkdownResponse } from "../misc/response";
 import { Actions, Action } from "../misc/actions";
 import { Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import CookiePolicyDialog from '@/components/docs/terms/cookie-dialog'
 
 interface Message {
   id: string;
@@ -39,7 +40,7 @@ interface ChatMessagesAreaRef {
   scrollToTop: () => void;
 }
 
-// Individual Chat Message Component
+// ---------------- Individual Chat Message ----------------
 function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, messages }: {
   message: Message;
   userAvatar?: string;
@@ -53,6 +54,7 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
   const displayContent = isStreaming ? streamingContent : message.content;
   const [isHovered, setIsHovered] = useState(false);
   const { toast } = useToast();
+  const [isCookieOpen, setIsCookieOpen] = useState(false)
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayContent || '');
@@ -104,7 +106,7 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
   return (
     <div key={message.id} className="w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
       {isUser ? (
-        // User message - blue bubble, right aligned
+        // User message 
         <div className="flex justify-end">
           <div className="max-w-[70%] bg-blue-600 text-white rounded-2xl px-4 py-3 shadow-lg transform transition-all duration-200 hover:shadow-xl">
             <p className="whitespace-pre-wrap leading-relaxed text-sm">
@@ -113,7 +115,7 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
           </div>
         </div>
       ) : (
-        // Assistant message - full width with Response component for markdown
+        // Assistant message 
         <div className="w-full relative group">
           <div 
             className="text-neutral-100 rounded-2xl p-4 relative"
@@ -155,14 +157,14 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
                     <Copy className="w-4 h-4" />
                   </Action>
                   <Action
-                    tooltip="Like this response"
+                    tooltip="Like response"
                     onClick={handleLike}
                     className="hover:bg-neutral-700/50 text-neutral-400 hover:text-green-400"
                   >
                     <ThumbsUp className="w-4 h-4" />
                   </Action>
                   <Action
-                    tooltip="Dislike this response"
+                    tooltip="Dislike response"
                     onClick={handleDislike}
                     className="hover:bg-neutral-700/50 text-neutral-400 hover:text-red-400"
                   >
@@ -185,7 +187,7 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
   );
 }
 
-{/* Loading */}
+// ---------------- Loading Message ----------------
 function LoadingMessage() {
   return (
     <div className="flex gap-3 p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -210,7 +212,7 @@ function LoadingMessage() {
   );
 }
 
-{/* Streaming Message Component */}
+// ---------------- Streaming Message ----------------
 function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent: string; onRegenerate?: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
   const { toast } = useToast();
@@ -303,14 +305,14 @@ function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent
                   <Copy className="w-4 h-4" />
                 </Action>
                 <Action
-                  tooltip="Like this response"
+                  tooltip="Like response"
                   onClick={handleLike}
                   className="hover:bg-neutral-700/50 text-neutral-400 hover:text-green-400"
                 >
                   <ThumbsUp className="w-4 h-4" />
                 </Action>
                 <Action
-                  tooltip="Dislike this response"
+                  tooltip="Dislike response"
                   onClick={handleDislike}
                   className="hover:bg-neutral-700/50 text-neutral-400 hover:text-red-400"
                 >
@@ -332,7 +334,8 @@ function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent
   );
 }
 
-{/* Welcome Input */}
+
+// ---------------- Welcome Input ----------------
 function WelcomeScreen({ user, onSendMessage, selectedMode }: {
   user: { name: string; email: string; avatar?: string };
   onSendMessage: (content: string) => void;
@@ -359,7 +362,7 @@ function WelcomeScreen({ user, onSendMessage, selectedMode }: {
   );
 }
 
-{/* Main Chat Area */}
+// ---------------- Main Chat Area ----------------
 export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesAreaProps>(
   ({ 
     user,
@@ -374,18 +377,16 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
   }, ref) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isCookieOpen, setIsCookieOpen] = useState(false);
 
     const handleRegenerateMessage = (messageId: string) => {
       if (!activeConversation) return;
       
-      // Find the index of the assistant message to regenerate
       const messageIndex = activeConversation.messages.findIndex(m => m.id === messageId);
       if (messageIndex === -1) return;
       
-      // Find the previous user message
       for (let i = messageIndex - 1; i >= 0; i--) {
         if (activeConversation.messages[i].role === 'user') {
-          // Resend the user message to regenerate the response
           onSendMessage(activeConversation.messages[i].content);
           break;
         }
@@ -395,7 +396,6 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     const handleRegenerateStreaming = () => {
       if (!activeConversation || !activeConversation.messages.length) return;
       
-      // Find the last user message
       for (let i = activeConversation.messages.length - 1; i >= 0; i--) {
         if (activeConversation.messages[i].role === 'user') {
           onSendMessage(activeConversation.messages[i].content);
@@ -476,6 +476,16 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
             <div className="max-w-6xl mx-auto">
               <AI_Input onSendMessage={onSendMessage} mode={selectedMode} />
             </div>
+            <div className="flex items-center justify-center font-light text-xs gap-1">
+              <p>
+                LegalAI can make mistakes.For more information refer to 
+              </p>
+              <a  href="#cookies" onClick={(e) => { e.preventDefault(); setIsCookieOpen(true); }}
+                className="text-white/70 hover:text-white transition-colors"
+                > Cookie Policies 
+              </a>
+            </div>
+            <CookiePolicyDialog open={isCookieOpen} onOpenChange={setIsCookieOpen} />
           </div>
         )}
       </>
@@ -485,5 +495,4 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
 
 ChatMessagesArea.displayName = "ChatMessagesArea";
 
-// Export individual ChatMessage for backward compatibility
 export { ChatMessage };

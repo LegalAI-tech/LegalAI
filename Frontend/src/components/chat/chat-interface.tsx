@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessagesArea } from "./chat-message"
 import { ChatModeSelector } from "../misc/mode-selector"
@@ -85,6 +85,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     }
   }
 
+  {/* Chat Stream Effect */}
   const streamText = (text: string, messageId: string, conversationId: string) => {
     const words = text.split(' ')
     let currentIndex = 0
@@ -97,12 +98,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         return
       }
 
-      // Render 5-8 words at a time for faster streaming
       const wordsToAdd = Math.min(5 + Math.floor(Math.random() * 4), words.length - currentIndex)
       const nextChunk = words.slice(0, currentIndex + wordsToAdd).join(' ')
       setStreamingContent(nextChunk)
       
-      // Update the actual message content in real-time
       setConversations(prev => prev.map(conv => 
         conv.id === conversationId
           ? { 
@@ -121,6 +120,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     return () => clearInterval(streamInterval)
   }
 
+   {/* Chat Functionality */ }
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return
 
@@ -239,10 +239,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     setTimeout(() => setIsNewConversationSelected(false), 100);
   }
 
+  {/*Copy conversation to clipboard */}
   const handleShareConversation = () => {
     if (!activeConversation) return
     
-    // Copy conversation to clipboard
     const conversationText = activeConversation.messages
       .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
       .join('\n\n')
