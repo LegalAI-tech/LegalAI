@@ -478,7 +478,7 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
             </div>
             <div className="flex items-center justify-center font-light text-xs gap-1">
               <p>
-                LegalAI can make mistakes.For more information refer to 
+                LegalAI can make mistakes. For more information refer to 
               </p>
               <a  href="#cookies" onClick={(e) => { e.preventDefault(); setIsCookieOpen(true); }}
                 className="text-white/70 hover:text-white transition-colors"

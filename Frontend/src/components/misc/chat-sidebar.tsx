@@ -88,7 +88,7 @@ export default function ChatSidebar({
               <>
                 <div className="px-2 py-1 flex-shrink-0">
                   <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    History
+                    Recents
                   </h3>
                 </div>
                 <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar min-h-0">

@@ -37,7 +37,7 @@ export function Sidebar({ children, open, setOpen, className }: SidebarProps) {
         )}
         initial={false}
         animate={{
-          width: open ? "280px" : "65px",
+          width: open ? "280px" : "60px",
         }}
         transition={{
           duration: 0.4,
