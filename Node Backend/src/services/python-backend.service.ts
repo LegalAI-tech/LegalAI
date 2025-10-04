@@ -21,15 +21,20 @@ interface RAGResponse extends BaseAIResponse {
   document_id?: string;
 }
 
-interface LanguageDetectionResponse {
+export interface LanguageDetectionResponse {
   language: string;
   confidence: number;
 }
 
 interface DocumentGenerationResponse {
   document_url?: string;
+  file_url?: string;
+  url?: string;
   status: string;
   message?: string;
+  title?: string;
+  content?: string;
+  metadata?: Record<string, any>;
 }
 
 interface TranslationResponse {

@@ -25,7 +25,7 @@ class TranslationService {
     // Call Python backend
     const result = await pythonBackend.translate(text, sourceLang, targetLang);
 
-    const translatedText = result.translated_text || result.translation || result.text;
+    const translatedText = result.translated_text;
 
     // Save to database
     await prisma.translation.create({
@@ -33,9 +33,9 @@ class TranslationService {
         userId,
         sourceText: text,
         translatedText,
-        sourceLang,
-        targetLang,
-        metadata: result.metadata || {},
+        sourceLang: result.source_language || sourceLang,
+        targetLang: result.target_language || targetLang,
+        metadata: {},
       },
     });
 
@@ -51,7 +51,7 @@ class TranslationService {
     };
   }
 
-  async detectLanguage(text: string) {
+  async detectLanguage(text: string): Promise<import('../../services/python-backend.service').LanguageDetectionResponse> {
     const result = await pythonBackend.detectLanguage(text);
     return result;
   }
