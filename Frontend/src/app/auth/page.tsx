@@ -15,14 +15,11 @@ export default function AuthenticationPage() {
   const { navigate, isNavigating } = usePageTransition();
 
   const handleAuthenticated = (userData: User) => {
-    navigate("/ai", () => {
-      localStorage.setItem("user", JSON.stringify(userData));
-    });
+    navigate("/ai");
   };
 
   return (
     <>
-      {/* Bounce Loader - stays visible until navigation completes */}
       <AnimatePresence mode="wait">
         {isNavigating && (
           <motion.div
@@ -38,7 +35,6 @@ export default function AuthenticationPage() {
         )}
       </AnimatePresence>
 
-      {/* Auth form with fade out during navigation */}
       <motion.div
         animate={{ 
           opacity: isNavigating ? 0 : 1,

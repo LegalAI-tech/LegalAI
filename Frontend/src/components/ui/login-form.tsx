@@ -8,27 +8,129 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import TocDialog from '@/components/docs/terms/toc-dialog';
 import PrivacyDialog from '@/components/docs/terms/privacy-dialog';
-import {Eye, EyeOff} from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const API_BASE_URL = 'https://legalai-backend-s6tj.onrender.com/api';
 
 interface LoginFormProps {
-  onAuthenticated?: (user: { name: string; email: string }) => void;
+  onAuthenticated?: (user: { name: string; email: string; avatar?: string }) => void;
 }
 
 export default function LoginForm({ onAuthenticated }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (onAuthenticated && email && password) {
-      onAuthenticated({ name: "User", email });
+    
+    if (!email || !password) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isLogin && !name) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const endpoint = isLogin ? '/auth/login' : '/auth/register';
+      const body = isLogin 
+        ? { email, password }
+        : { email, password, name };
+
+      console.log('Login Form: Attempting authentication', { 
+        endpoint: `${API_BASE_URL}${endpoint}`, 
+        isLogin,
+        email: email ? email.substring(0, 3) + '***' : 'empty' // Log partial email for debugging
+      });
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+      console.log('Login Form: API Response', { 
+        status: response.status, 
+        ok: response.ok, 
+        data: data 
+      });
+
+      if (!response.ok) {
+        throw new Error(data.message || `${isLogin ? 'Login' : 'Registration'} failed`);
+      }
+
+      if (data.success && data.data) {
+        // Store tokens
+        localStorage.setItem('authToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        
+        // Store user info
+        const userData = {
+          name: data.data.user.name,
+          email: data.data.user.email,
+          avatar: data.data.user.avatar,
+        };
+        
+        // Store user data in localStorage for the AI page to access
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('Login Form: User data stored in localStorage', userData);
+
+        toast({
+          title: "Success!",
+          description: isLogin ? "Logged in successfully." : "Account created successfully.",
+        });
+
+        if (onAuthenticated) {
+          onAuthenticated(userData);
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        title: "Authentication Failed",
+        description: error instanceof Error ? error.message : "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleGoogleLogin = () => {
+    // Redirect to Google OAuth
+    window.location.href = `${API_BASE_URL}/auth/google`;
+  };
+
+  const handleFacebookLogin = () => {
+    // Redirect to Facebook OAuth
+    window.location.href = `${API_BASE_URL}/auth/facebook`;
+  };
+  
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
       {/* Dark Dotted Grid Background */}
       <div
         className="absolute inset-0 z-0"
@@ -41,7 +143,7 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
           backgroundPosition: "0 0, 10px 10px",
           }}
       />
-      <div className="relative z-10 grid min-h-screen grid-cols-1 md:grid-cols-2">
+      <div className="relative z-10 grid min-h-screen grid-cols-1 md:grid-cols-2 max-h-screen">
         <motion.div
           className="hidden flex-1 items-center justify-center space-y-8 p-8 text-center md:flex"
           initial={{ opacity: 0, x: -50 }}
@@ -79,27 +181,31 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
               transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
               className="mt-8"
             >
-              <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-center text-white hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+              <Button 
+                onClick={() => setIsLogin(false)}
+                className="bg-gradient-to-r from-indigo-600 to-blue-600 text-center text-white hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
                 Sign Up as a Lawyer
               </Button>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Right Side - Login Form */}
+        {/* Right Side - Login/Register Form */}
         <motion.div
-          className="flex flex-1 items-center justify-center p-8"
+          className="flex flex-1 items-center justify-center p-4 md:p-8 overflow-y-auto max-h-screen"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           <motion.div
+            className="w-full max-w-md my-auto"
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
           >
-            <Card className="border-border/70 bg-card/20 w-full max-w-md shadow-[0_10px_26px_#e0e0e0a1] backdrop-blur-lg dark:shadow-none">
-              <CardContent className="space-y-6 p-8">
+            <Card className="border-border/70 bg-card/20 w-full shadow-[0_10px_26px_#e0e0e0a1] backdrop-blur-lg dark:shadow-none max-h-[90vh] overflow-y-auto">
+              <CardContent className="space-y-4 p-6 md:p-8">
                 {/* Logo and Header */}
                 <motion.div
                   className="space-y-4 text-center"
@@ -108,16 +214,54 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
                   transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
                 >
                   <div className="flex items-center justify-center space-x-2">
-                    <span className="text-2xl font-bold tracking-tight md:text-4xl">
-                      Welcome Back
-                    </span>
+                    <motion.span 
+                      className="text-2xl font-bold tracking-tight md:text-4xl"
+                      key={isLogin ? 'login-title' : 'register-title'}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                      {isLogin ? 'Welcome Back' : 'Create Account'}
+                    </motion.span>
                   </div>
-                  <p className="text-muted-foreground text-sm">
-                    Sign in to access your AI-powered legal assistant and streamline your legal queries.
-                  </p>
+                  <motion.p 
+                    className="text-muted-foreground text-sm"
+                    key={isLogin ? 'login-desc' : 'register-desc'}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  >
+                    {isLogin 
+                      ? 'Sign in to access your AI-powered legal assistant and streamline your legal queries.'
+                      : 'Join LegalAI to get started with your AI-powered legal assistant.'
+                    }
+                  </motion.p>
                 </motion.div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name Input (Register only) */}
+                  {!isLogin && (
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input 
+                        id="name" 
+                        type="text" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your full name"
+                        required={!isLogin}
+                      />
+                    </motion.div>
+                  )}
+
                   {/* Email Input */}
                   <motion.div
                     className="space-y-2"
@@ -136,6 +280,7 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
                     />
                   </motion.div>
 
+                  {/* Password Input */}
                   <motion.div
                     className="space-y-2"
                     initial={{ opacity: 0, y: 20 }}
@@ -167,7 +312,7 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
                     </div>
                   </motion.div>
 
-                  {/* Continue Button */}
+                  {/* Submit Button */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -178,11 +323,29 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
                     <Button 
                       type="submit"
                       className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700" 
-                      disabled={!email || !password}
+                      disabled={isLoading || !email || !password || (!isLogin && !name)}
                     >
-                      Login
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {isLogin ? 'Signing in...' : 'Creating account...'}
+                        </>
+                      ) : (
+                        isLogin ? 'Login' : 'Sign Up'
+                      )}
                     </Button>
                   </motion.div>
+
+                  {/* Toggle Login/Register */}
+                  <div className="text-center text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setIsLogin(!isLogin)}
+                      className="text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
+                    </button>
+                  </div>
                 </form>
 
                 {/* Divider */}
@@ -196,33 +359,43 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
                     <div className="border-border w-full border-t"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="bg-none text-muted-foreground px-2">
+                    <span className="bg-slate-600 text-muted-foreground px-2">
                       Or continue with
                     </span>
                   </div>
                 </motion.div>
 
+                {/* OAuth Buttons */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.9, ease: 'easeOut' }}
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button type="button" className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm">
+                      <Button 
+                        type="button" 
+                        onClick={handleFacebookLogin}
+                        disabled={isLoading}
+                        className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm"
+                      >
                         <svg
                           className="h-5 w-5 text-indigo-600"
                           viewBox="0 0 24 24"
                           fill="currentColor"
                         >
-                          <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09z" />
-                          <path d="M15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                         </svg>
-                        <span className="sr-only">Login with Apple</span>
+                        <span className="sr-only">Login with Facebook</span>
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button type="button" className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm">
+                      <Button 
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        disabled={isLoading}
+                        className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-sm"
+                      >
                         <svg
                           className="h-5 w-5 text-indigo-600"
                           viewBox="0 0 24 24"
@@ -241,7 +414,7 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
 
                 {/* Terms */}
                 <motion.p
-                  className="text-muted-foreground mt-2 text-center text-xs"
+                  className="text-muted-foreground mt-1 text-center text-xs"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 1.0, ease: 'easeOut' }}

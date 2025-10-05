@@ -18,22 +18,33 @@ export default function AIPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Check authentication
     const storedUser = localStorage.getItem("user");
+    const authToken = localStorage.getItem("authToken");
+    
+    console.log("AI Page: Checking authentication...", { 
+      hasUser: !!storedUser, 
+      hasToken: !!authToken 
+    });
     
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        console.log("AI Page: User found and parsed successfully", parsedUser);
+        setUser(parsedUser);
+      
+        setTimeout(() => {
+          setIsCheckingAuth(false);
+        }, 300);
       } catch (error) {
         console.error("Failed to parse user data:", error);
         navigate("/auth");
+        return;
       }
     } else {
+      console.log("AI Page: No user found in localStorage, redirecting to auth");
       navigate("/auth");
+      return;
     }
-    setTimeout(() => {
-      setIsCheckingAuth(false);
-    }, 300);
   }, [navigate]);
 
   const handleLogout = () => {
