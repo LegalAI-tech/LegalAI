@@ -122,21 +122,29 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <div className="text-sm leading-relaxed">
+           <div className="text-sm">
               <MarkdownResponse 
-                className="prose prose-invert prose-sm max-w-none
+                className="
+                  prose prose-invert prose-sm max-w-none
                   prose-headings:text-neutral-100 prose-headings:font-semibold
                   prose-p:text-neutral-200 prose-p:leading-relaxed
                   prose-strong:text-neutral-100 prose-strong:font-semibold
                   prose-code:text-blue-300 prose-code:bg-neutral-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                  prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700
+                  prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700 prose-pre:overflow-x-auto
                   prose-blockquote:border-l-blue-500 prose-blockquote:text-neutral-300
-                  prose-ul:text-neutral-200 prose-ol:text-neutral-200
-                  prose-li:text-neutral-200
-                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline"
+                  prose-ul:text-neutral-200 prose-ol:text-neutral-200 prose-li:text-neutral-200
+                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                  prose-table:border-separate prose-table:border-spacing-0 prose-table:border prose-table:border-neutral-700
+                  prose-th:border prose-th:border-neutral-700 prose-th:bg-neutral-800 prose-th:px-4 prose-th:py-3 prose-th:text-left
+                  prose-td:border prose-td:border-neutral-700 prose-td:px-4 prose-td:py-3
+                  prose-table:divide-y prose-table:divide-neutral-700
+                  prose-img:rounded-lg prose-img:shadow-lg
+                  [&_input[type='checkbox']]:mr-2 [&_input[type='checkbox']]:accent-blue-500
+                "
               >
                 {displayContent || ''}
               </MarkdownResponse>
+
               {isStreaming && (
                 <div className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1" />
               )}

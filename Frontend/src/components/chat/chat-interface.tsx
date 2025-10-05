@@ -98,8 +98,10 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         return
       }
 
-      const wordsToAdd = Math.min(5 + Math.floor(Math.random() * 4), words.length - currentIndex)
-      const nextChunk = words.slice(0, currentIndex + wordsToAdd).join(' ')
+      // Stream 3 words at a time for smooth, natural flow
+      const wordsToAdd = Math.min(3, words.length - currentIndex)
+      currentIndex += wordsToAdd
+      const nextChunk = words.slice(0, currentIndex).join(' ')
       setStreamingContent(nextChunk)
       
       setConversations(prev => prev.map(conv => 
@@ -113,9 +115,7 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
             }
           : conv
       ))
-      
-      currentIndex += wordsToAdd
-    }, 50)
+    }, 60)
 
     return () => clearInterval(streamInterval)
   }
