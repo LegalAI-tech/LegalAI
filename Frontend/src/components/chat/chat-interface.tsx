@@ -1,91 +1,88 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import ChatSidebar from "@/components/misc/chat-sidebar"
 import { ChatMessagesArea } from "./chat-message"
 import { ChatModeSelector } from "../misc/mode-selector"
 import { useToast } from "@/hooks/use-toast"
-
-interface Message {
-  id: string
-  content: string
-  role: "user" | "assistant"
-}
-
-interface Conversation {
-  id: string
-  title: string
-  messages: Message[]
-  lastMessage: string
-}
+import { apiService, type Conversation as BackendConversation, type Message as BackendMessage } from "@/lib/api.service"
+import { type Message, type MessageRole, type Conversation } from "@/types/chat.types"
+import { ConversationSkeleton } from "./conversation-skeleton"
+import { DeleteConversationDialog } from "./delete-conversation-dialog"
 
 interface ChatInterfaceProps {
   user: { name: string; email: string; avatar?: string }
   onLogout: () => void
 }
 
+// Transform backend message format to frontend format
+function transformMessage(msg: BackendMessage): Message {
+  return {
+    id: msg.id,
+    content: msg.content,
+    role: (msg.role === "USER" ? "user" : msg.role === "ASSISTANT" ? "assistant" : "system") as MessageRole,
+    attachments: msg.attachments,
+    metadata: msg.metadata,
+    createdAt: msg.createdAt
+  }
+}
+
 export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isNewConversationSelected, setIsNewConversationSelected] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<'chat' | 'agentic'>('chat');
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true)
+  const [isNewConversationSelected, setIsNewConversationSelected] = useState(false)
+  const [selectedMode, setSelectedMode] = useState<'chat' | 'agentic'>('chat')
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [streamingContent, setStreamingContent] = useState<string>("")
-  const messagesAreaRef = useRef<{ scrollToBottom: () => void; scrollToTop: () => void }>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const messagesAreaRef = useRef<{ scrollToBottom: () => void; scrollToTop: () => void }>(null)
   const { toast } = useToast()
 
   const activeConversation = conversations.find(c => c.id === activeConversationId)
 
-  const generateConversationTitle = (firstMessage: string): string => {
-    return firstMessage.length > 50 
-      ? firstMessage.substring(0, 50) + "..."
-      : firstMessage
-  }
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations()
+  }, [])
 
-  const simulateAIResponse = (userMessage: string): string => {
-    // Simple AI response simulation
-    const responses = [
-      "I understand your legal question. Let me help you with that.",
-      "Based on legal principles, here's what you should consider...",
-      "This is an interesting legal matter. Here's my analysis...",
-      "From a legal perspective, there are several important factors to consider.",
-      "I can help you understand the legal implications of this situation.",
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+  const loadConversations = async () => {
+    try {
+      setIsLoadingConversations(true)
+      const fetchedConversations = await apiService.getConversations()
+      
+      console.log('Fetched conversations:', fetchedConversations)
+      
+      // Transform conversations to include messages array
+      const transformedConversations = fetchedConversations.map(conv => {
+        const transformedMessages = conv.messages?.map(transformMessage) || []
+        console.log(`Conversation ${conv.id} messages:`, transformedMessages)
+        return {
+          ...conv,
+          messages: transformedMessages,
+          lastMessage: transformedMessages[transformedMessages.length - 1]?.content || ''
+        }
+      })
+      
+      setConversations(transformedConversations)
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+      toast({
+        title: "Failed to load conversations",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingConversations(false)
+    }
   }
 
   const handleModeChange = (mode: string) => {
-    setSelectedMode(mode as 'chat' | 'agentic');
-  };
-
-  const extractAssistantText = (data: any): string | null => {
-    if (!data) return null
-    // If webhook returned a plain string
-    if (typeof data === "string") return data
-    // Common fields
-    if (data.message && typeof data.message === "string") return data.message
-    if (data.text && typeof data.text === "string") return data.text
-    if (data.reply && typeof data.reply === "string") return data.reply
-
-    if (Array.isArray(data) && data.length > 0) {
-      const first = data[0]
-      if (first && typeof first === "object") {
-        if (first.json) return extractAssistantText(first.json)
-        if (first.message) return first.message
-        if (first.text) return first.text
-      }
-    }
-
-    try {
-      const str = JSON.stringify(data)
-      return str.length > 0 ? str : null
-    } catch (e) {
-      return null
-    }
+    setSelectedMode(mode as 'chat' | 'agentic')
   }
 
-  {/* Chat Stream Effect */}
+  // Stream text effect for AI responses
   const streamText = (text: string, messageId: string, conversationId: string) => {
     const words = text.split(' ')
     let currentIndex = 0
@@ -98,7 +95,6 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         return
       }
 
-      // Stream 3 words at a time for smooth, natural flow
       const wordsToAdd = Math.min(3, words.length - currentIndex)
       currentIndex += wordsToAdd
       const nextChunk = words.slice(0, currentIndex).join(' ')
@@ -108,9 +104,9 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         conv.id === conversationId
           ? { 
               ...conv, 
-              messages: conv.messages.map(msg =>
+              messages: conv.messages?.map(msg =>
                 msg.id === messageId ? { ...msg, content: nextChunk } : msg
-              ),
+              ) || [],
               lastMessage: nextChunk
             }
           : conv
@@ -120,111 +116,122 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     return () => clearInterval(streamInterval)
   }
 
-   {/* Chat Functionality */ }
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim()) return
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: "user",
-    }
-
-    let currentConversation = activeConversation
-
-    if (!currentConversation) {
-      const newConversation: Conversation = {
-        id: Date.now().toString(),
-        title: generateConversationTitle(content),
-        messages: [],
-        lastMessage: content
-      }
-      setConversations(prev => [newConversation, ...prev])
-      setActiveConversationId(newConversation.id)
-      currentConversation = newConversation
-    }
-
-    setConversations(prev => prev.map(conv => 
-      conv.id === currentConversation!.id
-        ? { 
-            ...conv, 
-            messages: [...conv.messages, newMessage],
-            lastMessage: content
-          }
-        : conv
-    ))
-
-    setIsLoading(true)
+  const handleSendMessage = async (content: string, file?: File) => {
+    if (!content.trim() && !file) return
 
     try {
-      const resp = await fetch("/api/webhook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content }),
+      let currentConversation = activeConversation
+      let conversationId = activeConversationId
+
+      // Create new conversation if none exists
+      if (!currentConversation) {
+        setIsLoading(true)
+        const mode = selectedMode === 'chat' ? 'NORMAL' : 'AGENTIC'
+        const title = content.length > 50 ? content.substring(0, 50) + "..." : content
+        
+        const newConv = await apiService.createConversation(mode, title)
+        
+        const transformedConv = {
+          ...newConv,
+          messages: [],
+          lastMessage: content
+        }
+        
+        setConversations(prev => [transformedConv, ...prev])
+        setActiveConversationId(newConv.id)
+        conversationId = newConv.id
+        currentConversation = transformedConv
+      }
+
+      // Add user message to UI immediately
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        content,
+        role: "user",
+        attachments: file ? [file.name] : [],
+        createdAt: new Date().toISOString()
+      }
+
+      setConversations(prev => prev.map(conv => 
+        conv.id === conversationId
+          ? { 
+              ...conv, 
+              messages: [...(conv.messages || []), userMessage],
+              lastMessage: content
+            }
+          : conv
+      ))
+
+      setIsLoading(true)
+
+      // Send message to backend
+      const mode = selectedMode === 'chat' ? 'NORMAL' : 'AGENTIC'
+      const response = await apiService.sendMessage(
+        conversationId!,
+        content,
+        mode,
+        file
+      )
+
+      // After sending message, refetch the conversation to get the complete message history
+      // including the assistant's response from the backend
+      const updatedConversation = await apiService.getConversationMessages(conversationId!)
+      
+      setIsLoading(false)
+
+      // Transform messages to frontend format
+      const transformedMessages = updatedConversation.messages?.map(transformMessage) || []
+      
+      // Find the last assistant message (the response we just received)
+      const lastAssistantMessage = transformedMessages.filter(m => m.role === 'assistant').pop()
+      
+      // Update conversation with all messages from backend
+      setConversations(prev => prev.map(conv => 
+        conv.id === conversationId!
+          ? { 
+              ...updatedConversation,
+              messages: transformedMessages,
+              lastMessage: lastAssistantMessage?.content || "",
+              sessionId: response.conversation.sessionId,
+              documentId: response.conversation.documentId
+            }
+          : conv
+      ))
+
+      // Start streaming effect for the assistant's response
+      if (lastAssistantMessage) {
+        setStreamingMessageId(lastAssistantMessage.id)
+        streamText(lastAssistantMessage.content, lastAssistantMessage.id, conversationId!)
+      }
+
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      setIsLoading(false)
+      
+      toast({
+        title: "Failed to send message",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
       })
 
-      let jsonResp: any = null
-      try {
-        jsonResp = await resp.json();
-      } catch (e) {
-        console.warn("Failed to parse /api/webhook response as JSON", e)
-      }
-      const assistantText = (jsonResp && jsonResp.text) ? String(jsonResp.text).trim() : ''
-      const finalAssistantText = assistantText || "Failed to get result"
-
-      setIsLoading(false)
-      
-      // Create assistant message only when we have the response
-      const assistantMessageId = (Date.now() + 1).toString()
-      const aiResponse: Message = {
-        id: assistantMessageId,
-        content: "",
-        role: "assistant"
+      // Show fallback error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+        role: "assistant",
+        createdAt: new Date().toISOString()
       }
 
-      setConversations(prev => prev.map(conv => 
-        conv.id === currentConversation!.id
-          ? { 
-              ...conv, 
-              messages: [...conv.messages, aiResponse],
-              lastMessage: ""
-            }
-          : conv
-      ))
-
-      setStreamingMessageId(assistantMessageId)
-      
-      // Start streaming effect
-      streamText(finalAssistantText, assistantMessageId, currentConversation.id)
-
-    } catch (err) {
-      console.error("Failed to fetch assistant response from webhook", err)
-      const fallbackResponse = simulateAIResponse(content)
-      
-      setIsLoading(false)
-      
-      // Create assistant message for fallback response
-      const assistantMessageId = (Date.now() + 1).toString()
-      const aiResponse: Message = {
-        id: assistantMessageId,
-        content: "",
-        role: "assistant"
+      if (activeConversationId) {
+        setConversations(prev => prev.map(conv => 
+          conv.id === activeConversationId
+            ? { 
+                ...conv, 
+                messages: [...(conv.messages || []), errorMessage]
+              }
+            : conv
+        ))
       }
-
-      setConversations(prev => prev.map(conv => 
-        conv.id === currentConversation!.id
-          ? { 
-              ...conv, 
-              messages: [...conv.messages, aiResponse],
-              lastMessage: ""
-            }
-          : conv
-      ))
-
-      setStreamingMessageId(assistantMessageId)
-      
-      // Stream fallback response
-      streamText(fallbackResponse, assistantMessageId, currentConversation.id)
     }
   }
 
@@ -232,20 +239,47 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
     setActiveConversationId(null)
   }
 
-  const handleSelectConversation = (id: string) => {
-    setActiveConversationId(id)
-    setIsNewConversationSelected(true);
-    // Reset the flag after a brief moment to allow the animation to complete
-    setTimeout(() => setIsNewConversationSelected(false), 100);
+  const handleSelectConversation = async (id: string) => {
+    try {
+      // Always fetch full conversation with messages to ensure we have all user and assistant messages
+      const fullConversation = await apiService.getConversationMessages(id)
+      
+      console.log('Full conversation loaded:', fullConversation)
+      console.log('Messages received:', fullConversation.messages)
+      
+      // Transform messages to frontend format
+      const transformedMessages = fullConversation.messages?.map(transformMessage) || []
+      console.log('Transformed messages:', transformedMessages)
+      
+      setConversations(prev => prev.map(c => 
+        c.id === id 
+          ? {
+              ...fullConversation,
+              messages: transformedMessages,
+              lastMessage: transformedMessages[transformedMessages.length - 1]?.content || ''
+            }
+          : c
+      ))
+      
+      setActiveConversationId(id)
+      setIsNewConversationSelected(true)
+      setTimeout(() => setIsNewConversationSelected(false), 100)
+    } catch (error) {
+      console.error('Failed to load conversation:', error)
+      toast({
+        title: "Failed to load conversation",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      })
+    }
   }
 
-  {/*Copy conversation to clipboard */}
   const handleShareConversation = () => {
     if (!activeConversation) return
     
     const conversationText = activeConversation.messages
-      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n\n')
+      ?.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+      .join('\n\n') || ''
     
     navigator.clipboard.writeText(conversationText)
       .then(() => {
@@ -266,25 +300,80 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
 
   const handleDeleteConversation = () => {
     if (!activeConversation) return
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDeleteConversation = async () => {
+    if (!activeConversation) return
     
-    // Remove the conversation from the list
-    setConversations(prev => prev.filter(conv => conv.id !== activeConversation.id))
-    
-    // If we deleted the active conversation, reset to no active conversation
-    if (activeConversationId === activeConversation.id) {
-      setActiveConversationId(null)
+    try {
+      await apiService.deleteConversation(activeConversation.id)
+      
+      setConversations(prev => prev.filter(conv => conv.id !== activeConversation.id))
+      
+      if (activeConversationId === activeConversation.id) {
+        setActiveConversationId(null)
+      }
+
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been deleted successfully.",
+      })
+    } catch (error) {
+      console.error('Failed to delete conversation:', error)
+      toast({
+        title: "Failed to delete",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      })
     }
   }
 
   const handleTempChatClick = () => {
     // Handle temporary chat functionality
     console.log('Temporary chat clicked')
-    // You can implement temporary chat logic here
+    handleNewConversation()
+  }
+
+  if (isLoadingConversations) {
+    return (
+      <div className="flex h-screen relative overflow-hidden">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            background: "rgb(33, 33, 33)",
+            backgroundSize: "30px 30px",
+            backgroundPosition: "0 0",
+          }}
+        />
+        <ChatSidebar
+          user={user}
+          conversations={[]}
+          activeConversationId={undefined}
+          onSelectConversation={() => {}}
+          onNewConversation={() => {}}
+          onLogout={onLogout}
+        />
+        <div className="flex-1 flex flex-col relative z-10 min-w-0 overflow-hidden">
+          <div className="sticky top-0 z-20 bg-[rgb(33,33,33)]">
+            <ChatModeSelector
+              variant="default"
+              onModeChange={handleModeChange}
+              onTempChatClick={handleTempChatClick}
+              onShareClick={handleShareConversation}
+              onDeleteClick={handleDeleteConversation}
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ConversationSkeleton />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="flex h-screen relative overflow-hidden chat-interface-container" style={{ maxWidth: '100vw' }}>
-      {/* Dark Gray Background */}
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -295,7 +384,12 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       />
       <ChatSidebar
         user={user}
-        conversations={conversations}
+        conversations={conversations.map(c => ({
+          id: c.id,
+          title: c.title,
+          messages: c.messages || [],
+          lastMessage: c.lastMessage || ""
+        }))}
         activeConversationId={activeConversationId || undefined}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
@@ -303,7 +397,6 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
       />
       
       <div className="flex-1 flex flex-col relative z-10 min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ maxWidth: 'calc(100vw - 65px)' }}>
-        {/* ChatModeSelector */}
         <div className="sticky top-0 z-20 bg-[rgb(33,33,33)]">
           <ChatModeSelector
             variant={activeConversation ? 'chat-selected' : 'default'}
@@ -317,7 +410,11 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
         <ChatMessagesArea
           ref={messagesAreaRef}
           user={user}
-          activeConversation={activeConversation}
+          activeConversation={activeConversation ? {
+            ...activeConversation,
+            messages: activeConversation.messages || [],
+            lastMessage: activeConversation.lastMessage || ""
+          } : undefined}
           isLoading={isLoading}
           selectedMode={selectedMode}
           streamingMessageId={streamingMessageId}
@@ -327,6 +424,13 @@ export function ChatInterface({ user, onLogout }: ChatInterfaceProps) {
           onRegenerate={handleSendMessage}
         />
       </div>
+
+      <DeleteConversationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={confirmDeleteConversation}
+        conversationTitle={activeConversation?.title}
+      />
     </div>
   )
 }

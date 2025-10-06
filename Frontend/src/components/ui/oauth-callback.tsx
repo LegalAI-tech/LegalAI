@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import BounceLoader from "@/components/ui/bounce-loader";
 import { useToast } from "@/hooks/use-toast";
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api$/, '');
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,7 +36,7 @@ export default function AuthCallbackPage() {
           localStorage.setItem('refreshToken', refreshToken);
 
           // Fetch user info using the token
-          const response = await fetch('https://legalai-backend-s6tj.onrender.com/api/auth/me', {
+          const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

@@ -4,10 +4,10 @@ import {
   Playfair_Display,
   Source_Code_Pro,
 } from "next/font/google";
-// @ts-expect-error: Allow importing global CSS without type declarations
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { HeroUIProvider } from "@heroui/system";
 
 const montserrat = Montserrat({
   variable: "--font-sans",
@@ -38,15 +38,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="metallic-scrollbar">
       <body className={`${montserrat.variable} ${playfairDisplay.variable} ${sourceCodePro.variable} antialiased metallic-scrollbar`} >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <HeroUIProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </HeroUIProvider>
       </body>
     </html>
   );

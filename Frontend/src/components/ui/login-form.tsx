@@ -11,7 +11,8 @@ import PrivacyDialog from '@/components/docs/terms/privacy-dialog';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const API_BASE_URL = 'https://legalai-backend-s6tj.onrender.com/api';
+// Ensure API_BASE_URL doesn't include /api suffix as endpoints already include it
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api$/, '');
 
 interface LoginFormProps {
   onAuthenticated?: (user: { name: string; email: string; avatar?: string }) => void;
@@ -52,7 +53,7 @@ export default function LoginForm({ onAuthenticated }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       const body = isLogin 
         ? { email, password }
         : { email, password, name };

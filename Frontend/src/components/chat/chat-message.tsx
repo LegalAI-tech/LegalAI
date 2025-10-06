@@ -6,14 +6,17 @@ import AITextLoading from "../misc/ai-text-loading";
 import AI_Input from "../misc/ai-chat";
 import { Response as MarkdownResponse } from "../misc/response";
 import { Actions, Action } from "../misc/actions";
-import { Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
+import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Paperclip } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import CookiePolicyDialog from '@/components/docs/terms/cookie-dialog'
+import CookiePolicyDialog from '@/components/docs/terms/cookie-dialog';
 
 interface Message {
   id: string;
   content: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
+  attachments?: string[];
+  metadata?: any;
+  createdAt?: Date | string;
 }
 
 interface Conversation {
@@ -21,6 +24,10 @@ interface Conversation {
   title: string;
   messages: Message[];
   lastMessage: string;
+  mode?: 'NORMAL' | 'AGENTIC';
+  documentId?: string;
+  documentName?: string;
+  sessionId?: string;
 }
 
 interface ChatMessagesAreaProps {
@@ -30,9 +37,10 @@ interface ChatMessagesAreaProps {
   selectedMode: 'chat' | 'agentic';
   streamingMessageId: string | null;
   streamingContent: string;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, file?: File) => void;
   isNewConversationSelected: boolean;
-  onRegenerate?: (messageId: string) => void;
+  onRegenerate?: (content: string) => void;
+  onFileUpload?: (file: File) => void;
 }
 
 interface ChatMessagesAreaRef {
@@ -47,14 +55,13 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
   userName?: string;
   isStreaming?: boolean;
   streamingContent?: string;
-  onRegenerate?: (messageId: string) => void;
+  onRegenerate?: (content: string) => void;
   messages?: Message[];
 }) {
   const isUser = message.role === "user";
   const displayContent = isStreaming ? streamingContent : message.content;
   const [isHovered, setIsHovered] = useState(false);
   const { toast } = useToast();
-  const [isCookieOpen, setIsCookieOpen] = useState(false)
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayContent || '');
@@ -98,8 +105,17 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
   };
 
   const handleRegenerate = () => {
-    if (onRegenerate) {
-      onRegenerate(message.id);
+    if (onRegenerate && messages) {
+      // Find the user message that prompted this assistant message
+      const currentIndex = messages.findIndex(m => m.id === message.id);
+      if (currentIndex > 0) {
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          if (messages[i].role === 'user') {
+            onRegenerate(messages[i].content);
+            break;
+          }
+        }
+      }
     }
   };
 
@@ -109,6 +125,17 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
         // User message 
         <div className="flex justify-end">
           <div className="max-w-[70%] bg-blue-600 text-white rounded-2xl px-4 py-3 shadow-lg transform transition-all duration-200 hover:shadow-xl">
+            {/* Show file attachments if any */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {message.attachments.map((fileName, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-blue-700 px-2 py-1 rounded text-xs">
+                    <Paperclip className="w-3 h-3" />
+                    <span>{fileName}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="whitespace-pre-wrap leading-relaxed text-sm">
               {message.content}
             </p>
@@ -122,29 +149,21 @@ function ChatMessage({ message, isStreaming, streamingContent, onRegenerate, mes
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-           <div className="text-sm">
+            <div className="text-sm leading-relaxed">
               <MarkdownResponse 
-                className="
-                  prose prose-invert prose-sm max-w-none
+                className="prose prose-invert prose-sm max-w-none
                   prose-headings:text-neutral-100 prose-headings:font-semibold
                   prose-p:text-neutral-200 prose-p:leading-relaxed
                   prose-strong:text-neutral-100 prose-strong:font-semibold
                   prose-code:text-blue-300 prose-code:bg-neutral-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                  prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700 prose-pre:overflow-x-auto
+                  prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700
                   prose-blockquote:border-l-blue-500 prose-blockquote:text-neutral-300
-                  prose-ul:text-neutral-200 prose-ol:text-neutral-200 prose-li:text-neutral-200
-                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-                  prose-table:border-separate prose-table:border-spacing-0 prose-table:border prose-table:border-neutral-700
-                  prose-th:border prose-th:border-neutral-700 prose-th:bg-neutral-800 prose-th:px-4 prose-th:py-3 prose-th:text-left
-                  prose-td:border prose-td:border-neutral-700 prose-td:px-4 prose-td:py-3
-                  prose-table:divide-y prose-table:divide-neutral-700
-                  prose-img:rounded-lg prose-img:shadow-lg
-                  [&_input[type='checkbox']]:mr-2 [&_input[type='checkbox']]:accent-blue-500
-                "
+                  prose-ul:text-neutral-200 prose-ol:text-neutral-200
+                  prose-li:text-neutral-200
+                  prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline"
               >
                 {displayContent || ''}
               </MarkdownResponse>
-
               {isStreaming && (
                 <div className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1" />
               )}
@@ -221,7 +240,10 @@ function LoadingMessage() {
 }
 
 // ---------------- Streaming Message ----------------
-function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent: string; onRegenerate?: () => void }) {
+function StreamingMessage({ streamingContent, onRegenerate }: { 
+  streamingContent: string; 
+  onRegenerate?: () => void;
+}) {
   const [isHovered, setIsHovered] = useState(false);
   const { toast } = useToast();
 
@@ -303,7 +325,7 @@ function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent
             absolute bottom-2 right-2 transition-all duration-300 ease-out transform
             ${isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
           `}>
-            <div className="bg-neutral-800/90 backdrop-blur-sm border-2xl border-neutral-700/50 rounded-lg p-1 shadow-lg">
+            <div className="bg-neutral-800/90 backdrop-blur-sm border border-neutral-700/50 rounded-lg p-1 shadow-lg">
               <Actions>
                 <Action
                   tooltip="Copy message"
@@ -342,11 +364,10 @@ function StreamingMessage({ streamingContent, onRegenerate }: { streamingContent
   );
 }
 
-
 // ---------------- Welcome Input ----------------
 function WelcomeScreen({ user, onSendMessage, selectedMode }: {
   user: { name: string; email: string; avatar?: string };
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, file?: File) => void;
   selectedMode: 'chat' | 'agentic';
 }) {
   return (
@@ -363,7 +384,11 @@ function WelcomeScreen({ user, onSendMessage, selectedMode }: {
           </div>
         </div>
         <div className="w-full">
-          <AI_Input onSendMessage={onSendMessage} mode={selectedMode} />
+          <AI_Input 
+            onSendMessage={onSendMessage} 
+            mode={selectedMode}
+            showModeIndicator={true}
+          />
         </div>
       </div>
     </div>
@@ -387,17 +412,9 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isCookieOpen, setIsCookieOpen] = useState(false);
 
-    const handleRegenerateMessage = (messageId: string) => {
-      if (!activeConversation) return;
-      
-      const messageIndex = activeConversation.messages.findIndex(m => m.id === messageId);
-      if (messageIndex === -1) return;
-      
-      for (let i = messageIndex - 1; i >= 0; i--) {
-        if (activeConversation.messages[i].role === 'user') {
-          onSendMessage(activeConversation.messages[i].content);
-          break;
-        }
+    const handleRegenerateMessage = (content: string) => {
+      if (onRegenerate) {
+        onRegenerate(content);
       }
     };
 
@@ -482,15 +499,19 @@ export const ChatMessagesArea = forwardRef<ChatMessagesAreaRef, ChatMessagesArea
         {hasMessages && (
           <div className="pt-1 pb-4">
             <div className="max-w-6xl mx-auto">
-              <AI_Input onSendMessage={onSendMessage} mode={selectedMode} />
+              <AI_Input 
+                onSendMessage={onSendMessage} 
+                mode={selectedMode}
+                showModeIndicator={false}
+              />
             </div>
             <div className="flex items-center justify-center font-light text-xs gap-1">
               <p>
                 LegalAI can make mistakes. For more information refer to 
               </p>
-              <a  href="#cookies" onClick={(e) => { e.preventDefault(); setIsCookieOpen(true); }}
+              <a href="#cookies" onClick={(e) => { e.preventDefault(); setIsCookieOpen(true); }}
                 className="text-white/70 hover:text-white transition-colors"
-                > Cookie Policies 
+              > Cookie Policies 
               </a>
             </div>
             <CookiePolicyDialog open={isCookieOpen} onOpenChange={setIsCookieOpen} />
