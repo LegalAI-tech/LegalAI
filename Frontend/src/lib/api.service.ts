@@ -1,5 +1,5 @@
 // lib/api.service.ts
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
+const NEXT_PUBLIC_API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/api$/, '');
 
 interface ApiResponse<T> {
   success: boolean;
@@ -63,7 +63,7 @@ class ApiService {
     }
 
     try {
-      const url = `${API_BASE_URL}${endpoint}`;
+      const url = `${NEXT_PUBLIC_API_URL}${endpoint}`;
       console.log('API Request:', { method: options.method || 'GET', url });
       
       const response = await fetch(url, {
