@@ -21,7 +21,7 @@ interface LoginFormProps {
 export default function LoginForm({ onAuthenticated }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [name, setName] = useState(''); //only for sign-up
   const [showPassword, setShowPassword] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
